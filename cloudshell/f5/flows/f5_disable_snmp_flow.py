@@ -1,11 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import re
-
 from cloudshell.devices.flows.cli_action_flows import DisableSnmpFlow
+from cloudshell.f5.command_actions.enable_disable_snmp_actions import EnableDisableSnmpActions
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters
-
-from f5.command_actions.enable_disable_snmp_actions import EnableDisableSnmpActions
 
 
 class F5DisableSnmpFlow(DisableSnmpFlow):

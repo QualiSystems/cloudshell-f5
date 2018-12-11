@@ -1,10 +1,7 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 import re
 
-from cloudshell.cli.cli_service_impl import CliServiceImpl as CliService
 from cloudshell.cli.command_template.command_template_executor import CommandTemplateExecutor
-from f5.command_templates import enable_disable_snmp
+from cloudshell.f5.command_templates import enable_disable_snmp
 
 
 class EnableDisableSnmpActions(object):

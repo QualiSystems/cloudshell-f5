@@ -2,8 +2,7 @@ import time
 
 from cloudshell.cli.session.session_exceptions import ExpectedSessionException
 from cloudshell.devices.flows.cli_action_flows import LoadFirmwareFlow
-
-from f5.command_actions.sys_config_actions import F5SysConfigActions, F5SysActions
+from cloudshell.f5.command_actions.sys_config_actions import F5SysConfigActions, F5SysActions
 
 
 class F5FirmwareFlow(LoadFirmwareFlow):

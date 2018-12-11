@@ -1,9 +1,5 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from cloudshell.devices.runners.autoload_runner import AutoloadRunner
-
-from f5.flows.f5_autoload_flow import F5SnmpAutoloadFlow
+from cloudshell.f5.flows.f5_autoload_flow import F5SnmpAutoloadFlow
 
 
 class F5AutoloadRunner(AutoloadRunner):

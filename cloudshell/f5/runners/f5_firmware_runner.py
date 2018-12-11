@@ -1,6 +1,5 @@
 from cloudshell.devices.runners.firmware_runner import FirmwareRunner
-
-from f5.flows.f5_firmware_flow import F5FirmwareFlow
+from cloudshell.f5.flows.f5_firmware_flow import F5FirmwareFlow
 
 
 class F5FirmwareRunner(FirmwareRunner):

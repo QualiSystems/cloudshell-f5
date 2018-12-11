@@ -3,8 +3,7 @@ import os
 import re
 
 from cloudshell.devices.autoload.autoload_builder import AutoloadDetailsBuilder
-
-from f5.autoload.snmp_if_table import SnmpIfTable
+from cloudshell.f5.autoload.snmp_if_table import SnmpIfTable
 
 
 class AbstractF5GenericSNMPAutoload(object):
@@ -226,9 +225,10 @@ class AbstractF5GenericSNMPAutoload(object):
                 self._add_element(relative_path=relative_address, resource=power_port, parent_id=chassis_id)
 
                 self.logger.info("Added Power Port {}".format(power_port_id))
+
         self.logger.info("Building Power Ports completed")
 
-       def _get_ports(self):
+    def _get_ports(self):
         """Get resource details and attributes for every port in self.port_list
 
         :return:
@@ -261,13 +261,12 @@ class AbstractF5GenericSNMPAutoload(object):
             if lldp_table:
                 lldp_table_key = [k for k, v in lldp_table if v["sysLldpNeighborsTableLocalInterface"] == port][-1]
                 if lldp_table_key:
-                    port_object.adjacent = '{remote_host} through {remote_port}'.format(remote_host=
-                    self.snmp_handler.get_property(
-                        "F5-BIGIP-SYSTEM-MIB",
-                        "sysLldpNeighborsTableSysName",
-                        index=lldp_table_key),
-                        remote_port=
-                        self.snmp_handler.get_property(
+                    port_object.adjacent = '{remote_host} through {remote_port}'.format(
+                        remote_host=self.snmp_handler.get_property(
+                            "F5-BIGIP-SYSTEM-MIB",
+                            "sysLldpNeighborsTableSysName",
+                            index=lldp_table_key),
+                        remote_port=self.snmp_handler.get_property(
                             "F5-BIGIP-SYSTEM-MIB",
                             "sysLldpNeighborsTablePortDesc",
                             index=lldp_table_key))

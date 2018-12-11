@@ -1,6 +1,7 @@
 import re
-from f5.autoload.snmp_if_entity import SnmpIfEntity
-from f5.autoload.snmp_port_attr_tables import SnmpPortAttrTables
+
+from cloudshell.f5.autoload.snmp_if_entity import SnmpIfEntity
+from cloudshell.f5.autoload.snmp_port_attr_tables import SnmpPortAttrTables
 
 
 class SnmpIfTable(object):

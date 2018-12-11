@@ -1,10 +1,9 @@
 import re
-
 import time
+
 from cloudshell.cli.command_template.command_template_executor import CommandTemplateExecutor
 from cloudshell.cli.session.session_exceptions import SessionException
-
-from f5.command_templates import f5_config_templates
+from cloudshell.f5.command_templates import f5_config_templates
 
 
 class F5SysConfigActions(object):

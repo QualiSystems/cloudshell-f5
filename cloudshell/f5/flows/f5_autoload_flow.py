@@ -1,9 +1,5 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from cloudshell.devices.flows.snmp_action_flows import AutoloadFlow
-
-from f5.autoload.f5_generic_snmp_autoload import F5GenericSNMPAutoload
+from cloudshell.f5.autoload.f5_generic_snmp_autoload import F5GenericSNMPAutoload
 
 
 class F5SnmpAutoloadFlow(AutoloadFlow):

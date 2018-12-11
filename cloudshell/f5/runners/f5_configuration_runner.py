@@ -1,7 +1,6 @@
 from cloudshell.devices.runners.configuration_runner import ConfigurationRunner
-
-from f5.flows.f5_restore_flow import F5RestoreFlow
-from f5.flows.f5_save_flow import F5SaveFlow
+from cloudshell.f5.flows.f5_restore_flow import F5RestoreFlow
+from cloudshell.f5.flows.f5_save_flow import F5SaveFlow
 
 
 class F5ConfigurationRunner(ConfigurationRunner):

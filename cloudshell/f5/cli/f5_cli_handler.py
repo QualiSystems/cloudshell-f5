@@ -1,13 +1,9 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 from cloudshell.cli.cli_service_impl import CliServiceImpl
-
 from cloudshell.cli.command_mode_helper import CommandModeHelper
 from cloudshell.cli.session.ssh_session import SSHSession
 from cloudshell.cli.session.telnet_session import TelnetSession
 from cloudshell.devices.cli_handler_impl import CliHandlerImpl
-# from f5.cli.f5_command_modes import EnableCommandMode, DefaultCommandMode, ConfigCommandMode
-from f5_command_modes import EnableCommandMode, ConfigCommandMode
+from cloudshell.f5.cli.f5_command_modes import EnableCommandMode, ConfigCommandMode
 
 
 class F5CliHandler(CliHandlerImpl):
