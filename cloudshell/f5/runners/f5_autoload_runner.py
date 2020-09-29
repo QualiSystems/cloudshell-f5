@@ -3,7 +3,7 @@ from cloudshell.devices.runners.autoload_runner import AutoloadRunner
 
 class AbstractF5AutoloadRunner(AutoloadRunner):
     def __init__(self, logger, resource_config, snmp_handler):
-        super(AbstractF5AutoloadRunner, self).__init__(resource_config)
+        super(AbstractF5AutoloadRunner, self).__init__(resource_config=resource_config, logger=logger)
         self._logger = logger
         self.snmp_handler = snmp_handler
 

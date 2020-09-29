@@ -62,8 +62,8 @@ class F5CliHandler(CliHandlerImpl):
         """Send default commands to configure/clear session outputs
         :return:
         """
-
-        cli_service = CliServiceImpl(session=session, command_mode=self.enable_mode, logger=logger)
+        pass
+        #cli_service = CliServiceImpl(session=session, command_mode=self.enable_mode, logger=logger)
         # cli_service.send_command("terminal length 0", EnableCommandMode.PROMPT)
         # cli_service.send_command("terminal width 300", EnableCommandMode.PROMPT)
         # cli_service.send_command("terminal no exec prompt timestamp", EnableCommandMode.PROMPT)

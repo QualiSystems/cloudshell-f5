@@ -60,22 +60,27 @@ class AbstractF5GenericSNMPAutoload(object):
         self.logger.info("Start SNMP discovery process .....")
 
         self._load_f5_mib()
-        self._get_device_details()
-        self._get_chassis_attributes()
-        self._get_power_ports()
-        self._get_ports()
+        self._build_resources()
 
         autoload_details = AutoloadDetailsBuilder(self.resource).autoload_details()
         self._log_autoload_details(autoload_details)
         return autoload_details
 
+    def _build_resources(self):
+        """Discover and create all needed resources.
+
+        :return:
+        """
+        self._get_device_details()
+        self._get_chassis_attributes()
+        self._get_power_ports()
+        self._get_ports()
 
     def _load_f5_mib(self):
         """Loads f5 specific mibs inside snmp handler"""
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mibs"))
         self.snmp_handler.update_mib_sources(path)
         self.snmp_handler.load_mib(["F5-BIGIP-SYSTEM-MIB"])
-
 
     def _log_autoload_details(self, autoload_details):
         """Logging autoload details
