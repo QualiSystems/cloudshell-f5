@@ -1,4 +1,5 @@
 from cloudshell.devices.runners.configuration_runner import ConfigurationRunner
+
 from cloudshell.f5.flows.f5_restore_flow import F5RestoreFlow
 from cloudshell.f5.flows.f5_save_flow import F5SaveFlow
 
@@ -8,8 +9,11 @@ class F5ConfigurationRunner(ConfigurationRunner):
 
     @property
     def restore_flow(self):
-        return F5RestoreFlow(cli_handler=self.cli_handler, logger=self._logger,
-                             local_storage=self.DEFAULT_CONFIG_STORAGE)
+        return F5RestoreFlow(
+            cli_handler=self.cli_handler,
+            logger=self._logger,
+            local_storage=self.DEFAULT_CONFIG_STORAGE,
+        )
 
     @property
     def file_system(self):
@@ -17,4 +21,8 @@ class F5ConfigurationRunner(ConfigurationRunner):
 
     @property
     def save_flow(self):
-        return F5SaveFlow(cli_handler=self.cli_handler, logger=self._logger, local_storage=self.DEFAULT_CONFIG_STORAGE)
+        return F5SaveFlow(
+            cli_handler=self.cli_handler,
+            logger=self._logger,
+            local_storage=self.DEFAULT_CONFIG_STORAGE,
+        )
