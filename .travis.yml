@@ -1,0 +1,87 @@
+language: python
+python: 2.7
+
+jobs:
+  include:
+    - if: branch = master
+      python: 2.7
+      env: TOXENV=py27-master
+      after_success: codecov
+    - if: branch != master
+      python: 2.7
+      env: TOXENV=py27-dev
+      after_success: codecov
+    - env: TOXENV=build
+      python: 2.7
+    - env: TOXENV=pre-commit
+      python: 3.7
+      dist: xenial
+    - stage: Deploy to Test PyPI release
+      env: TOXENV=build
+      before_script: sed -i -E "s/^([0-9]+\.[0-9]+\.[0-9]+)$/\1.$TRAVIS_BUILD_NUMBER/" version.txt
+      deploy:
+        distributions: skip
+        skip_cleanup: true
+        provider: pypi
+        server: https://test.pypi.org/legacy/
+        user: "__token__"
+        password:
+          secure: "BVVdRZS2VlUMECBsjN02bnhdi8cQiLsjTvoQ3ZC9RojQKZFVT0T8gHFmdiYVuS5ir9GvmhAkG429ubBLyjJ6Cewg1kFFSwJaKIF4RwMLvfw0BeXT2JthwsBcE2wmB5H+S8P5MhT+tIzRKYqnBc321pcfmX+PCMl9YGORjVufmutETzjbiOg4g9kK6z1x4ND1Wz44UckQX7fTl68cCAbkm5g9M6dC/HDf8qJ3LfDyQh8orO3kOP+VOMVAGasosIhHxyHCixXpgJSKyBemy2AvCtULYVtF8M2LhlaHqMgQUaLrsIJ8GxwjYbd8rnAU1hAszSJVae7DCmg71b5xpmvCEBAJXTF4XK9CKW7lD205VyP/WGhb3xmyylb2AgKEAK5k6SbnzVjoqn/aWYZU1ZqNbLAJv9bzheQzUQ1N3QmdtuoUhbIKHxZzmFuMOgC7y8/FKmzZKZy2y4WATa6UXWYWTHJS70gYxO4fWNNLi9dpTb8b7NxFpkeK+Gk9Fq0alnFNzkg+Q2UON8Kh3+WOOo7/CsR1BCVXqBVwiaR03MJCg3KMxCAaMS7udjbyjFW6fSBEB2XdoB8NA+aw0sCvm4ia3b3B+0GWRz18NwAJYTrhvWVenzjHBeFjGQmLJkFRFwv+8acTU1eMMzRr6aIsWhpygpFEWhHKPqJAx9LxuKSgF8Q="
+        on:
+          branch: dev
+    - stage: Deploy to PyPI release
+      env: TOXENV=build
+      deploy:
+        distributions: skip
+        skip_cleanup: true
+        provider: pypi
+        user: "__token__"
+        password:
+          secure: "TZqRDvGS7lI3H/gCJgHD2lJKDSH5/h5cT+/Ar2MUVP1sdKeEHmtHgU3yIDXI57cBz5yrDkeuKpdyOnaHxDOvgCtdtAoQJAzswWl1SUGbWfFIwfF02R6THnSkqipAbUbGKOOjDFpMWqgCI59A10h63T+3S+Gl/YZUvblBLjTVtigWV6DzEqPEOjGwm5ZpVEw8LLuCsCK2bYD7+u5s9HXhz2ucNhYr5iWtr10HpVLmr+0BYTmxHRTWdHTQM/7/MwulGm8Htl2fS+IwGkfLUj46MJMOi41w9xZ6eZkmDAhKLAWGQ0Sp7xQErTj4YmsBiCd8wU1PEKpm2zKL2o4y8lxY3fwG4tKnYhIMkec/HadlANuzqU1xCuP/SyEQ940ytAvT4MBam9t7L4+4vYdaFCJ6SkscZkBrkasG5P4wO8mf+UnY2E7EnyfHy9S2rOzlIzrzy8sWRcqq3TTnPmfTtLssFLUIEqvzzHSLPx4DWVFHGzeRILqC8e8882zxOmtIqtgO1AR5e5k2/0iXMqM+JVHkbJIOPHitRPpBWQ7spPA4K6LRzFN39heAMXRL5fd+ElZARUXODzYI/UFex4t/8G6ryIKQY9mIhF8bMhwUXOxGdhcUcM7nY2AEDVKlc4ru5yXysbW+PeHJjWbxgPfw/qpcZ/ijm/SlR3UDmG1Co5VBNbQ="
+        on:
+          tags: true
+    - stage: Create GitHub release
+      env: TOXENV=build
+      before_deploy:
+        - export AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
+        - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
+        - export GIT_TAG="$(cat version.txt | tr -d ' \t\n\r')"
+        - git config --local user.name $AUTHOR_NAME
+        - git config --local user.email $AUTHOR_EMAIL
+        - git tag $GIT_TAG
+      deploy:
+        provider: releases
+        skip_cleanup: true
+        draft: true
+        api_key:
+          secure: "kIeKoKzoFjIspniYYL+IcOhKtMeaVZ4komFha1AQfJ5IpjQggWPttOH9LBNKQW+FIiRopPeqHHx0YyvCqQqn+LYluVUo8js8fMx5Boz1I8xOQOzjic1RKAaEdj/sMjM6waPRdx/K0tGhZnjpoMQm29BAH4MdM7FjO2kCk1yJ7i/ZWmUybkObBAPZe+ZnaSO7Lxcmy2uHBSL/noLv9Q7cWF0L1EFVRKU+MxM3VUWtMfGgHmJ2by6YbQ4MaXicmOy9JrQG23BqFZKiW/dKS9Y16oKoSwn3c94N8Zw/Tfg9RYoy1VDVgC3H11GQzQZvXMXwYqAUJaKA+ilMo4yEDx+DAO/xOUIDDSpKi/3tKqgL2Mpoy1idOMFQKkxigBBctyIV1RIH+Pq76yWbRX0yQT0uOfDA/X2ZJ0S0FsxWZS9r/td5tJi9bjpUtCEJENMspUPEFprEtMrKu8Vb8rhzBaHk/bHRXNVS9lL3eFgcrlQAEopW3uqSPdYs0GFAHXHY4/01gqhNzZtZOcf++FlUsMZsgDzNBYo1ZFuqGtZwu8NbZshEusekiSUHgN/TkSQozsy+g7wZoSCgx0bxM/sfcA7eaHvZ8boSxlksYzy9Bnt0NEm/rPL6UmNCdyr8yehnbdVFDaK31UxHn/4LBwizZxE67EkML4ziy7Q7As2krjbYJaA="
+        file_glob: true
+        file: dist/*
+        name: cloudshell-cp-azure $GIT_TAG
+        target_commitish: master
+        on:
+          branch: master
+    - stage: Check version
+      language: bash
+      install:
+        - git clone https://github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_REPO_SLUG
+        - cd $TRAVIS_REPO_SLUG
+        - git checkout -qf $TRAVIS_PULL_REQUEST_BRANCH
+      script: "! git diff --exit-code --quiet origin/master version.txt"
+
+install:
+  - pip install tox
+  - pip install codecov
+
+script: tox
+
+stages:
+  - name: Check version
+    if: branch = master AND type = pull_request
+  - name: Test
+  - name: Deploy to Test PyPI release
+    if: branch = dev AND type != pull_request
+  - name: Create GitHub release
+    if: branch = master AND type != pull_request
+  - name: Deploy to PyPI release
+    if: tag IS present
