@@ -1,25 +1,26 @@
-from setuptools import find_packages
-from setuptools import setup
 import os
 
-with open(os.path.join('version.txt')) as version_file:
+from setuptools import find_packages, setup
+
+with open(os.path.join("version.txt")) as version_file:
     version_from_file = version_file.read().strip()
 
-with open('requirements.txt') as f_required:
+with open("requirements.txt") as f_required:
     required = f_required.read().splitlines()
 
-with open('test_requirements.txt') as f_tests:
+with open("test_requirements.txt") as f_tests:
     required_for_tests = f_tests.read().splitlines()
 
 setup(
-    name='cloudshell-f5',
-    url='https://github.com/QualiSystems/cloudshell-f5',
-    author='QualiSystems',
-    author_email='info@qualisystems.com',
+    name="cloudshell-f5",
+    url="https://github.com/QualiSystems/cloudshell-f5",
+    author="Quali",
+    author_email="info@quali.com",
     packages=find_packages(),
     install_requires=required,
-    test_suite='tests',
     tests_require=required_for_tests,
+    test_suite="nose.collector",
     version=version_from_file,
-    description='QualiSystems Python package',
-    include_package_data=True)
+    description="",
+    include_package_data=True,
+)
