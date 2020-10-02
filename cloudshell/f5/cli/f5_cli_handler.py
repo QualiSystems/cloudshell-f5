@@ -32,12 +32,15 @@ class F5CliHandler(CliHandlerImpl):
 
     def _console_telnet_session(self):
         console_port = int(self.resource_config.console_port)
-        return [TelnetSession(self.resource_config.console_server_ip_address,
-                              self.username,
-                              self.password,
-                              console_port,
-                              self.on_session_start),
-                ]
+        return [
+            TelnetSession(
+                self.resource_config.console_server_ip_address,
+                self.username,
+                self.password,
+                console_port,
+                self.on_session_start,
+            ),
+        ]
 
     def _new_sessions(self):
         if self.cli_type.lower() == SSHSession.SESSION_TYPE.lower():
