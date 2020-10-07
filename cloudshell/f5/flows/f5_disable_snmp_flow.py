@@ -71,7 +71,9 @@ class F5DisableSnmpFlow(DisableSnmpFlow):
         current_snmp_community_list = snmp_actions.get_current_snmp_communities()
 
         if snmp_parameters.snmp_community in current_snmp_community_list:
-            result = snmp_actions.disable_snmp(snmp_community=snmp_parameters.snmp_community)
+            result = snmp_actions.disable_snmp(
+                snmp_community=snmp_parameters.snmp_community
+            )
 
             if (
                 snmp_parameters.snmp_community
