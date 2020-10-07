@@ -9,8 +9,6 @@ from cloudshell.f5.command_templates import enable_disable_snmp
 
 
 class BaseSnmpActions(object):
-    SNMP_GROUP_NAME = "comm-quali"
-
     def __init__(self, cli_service, logger):
         """Init command.
 
@@ -105,14 +103,14 @@ class SnmpV2Actions(BaseSnmpActions):
             action_map=action_map,
             error_map=error_map,
         ).execute_command(
-            group=self.SNMP_GROUP_NAME,
             snmp_community=snmp_community,
             read_access=read_only,
         )
 
-    def disable_snmp(self, action_map=None, error_map=None):
+    def disable_snmp(self, snmp_community, action_map=None, error_map=None):
         """Disable SNMP community on the device.
 
+        :param snmp_community: community name
         :param action_map: actions will be taken during executing commands
         :param error_map: errors will be raised during executing commands
         """
@@ -121,7 +119,7 @@ class SnmpV2Actions(BaseSnmpActions):
             command_template=enable_disable_snmp.REMOVE_SNMP_COMMUNITY,
             action_map=action_map,
             error_map=error_map,
-        ).execute_command(group=self.SNMP_GROUP_NAME)
+        ).execute_command(snmp_community=snmp_community)
 
 
 class SnmpV3Actions(BaseSnmpActions):
@@ -206,7 +204,6 @@ class SnmpV3Actions(BaseSnmpActions):
             action_map=action_map,
             error_map=error_map,
         ).execute_command(
-            group=self.SNMP_GROUP_NAME,
             user=user,
             password=password,
             auth_protocol=auth_protocol,
@@ -228,4 +225,4 @@ class SnmpV3Actions(BaseSnmpActions):
             command_template=enable_disable_snmp.DELETE_SNMP_USER,
             action_map=action_map,
             error_map=error_map,
-        ).execute_command(group=self.SNMP_GROUP_NAME)
+        ).execute_command(user=user)

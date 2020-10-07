@@ -20,24 +20,24 @@ SHOW_SNMP_ACCESS = CommandTemplate(
 )
 
 CREATE_SNMP_COMMUNITY = CommandTemplate(
-    "modify /sys snmp communities add {{ {group} {{ access {read_access} "
+    "modify /sys snmp communities add {{ {snmp_community} {{ access {read_access} "
     "community-name {snmp_community}}} }}",
     error_map=ERROR_MAP,
 )
 REMOVE_SNMP_COMMUNITY = CommandTemplate(
-    "modify /sys snmp communities delete {{ {group} }}", error_map=ERROR_MAP
+    "modify /sys snmp communities delete {{ {snmp_community} }}", error_map=ERROR_MAP
 )
 SHOW_SNMP_COMMUNITY = CommandTemplate(
     "list /sys snmp communities | grep  community-name", error_map=ERROR_MAP
 )
 
 ADD_SNMP_USER = CommandTemplate(
-    "modify sys snmp users add {{ {group} {{ username {user} auth-protocol "
+    "modify sys snmp users add {{ {user} {{ username {user} auth-protocol "
     "{auth_protocol} privacy-protocol {priv_protocol} security-level {security_level} "
     "oid-subset .1 auth-password '{password}' privacy-password '{priv_password}' }} }}",
     error_map=ERROR_MAP,
 )
 
 DELETE_SNMP_USER = CommandTemplate(
-    "modify sys snmp users delete {{ {group} }}", error_map=ERROR_MAP
+    "modify sys snmp users delete {{ {user} }}", error_map=ERROR_MAP
 )
