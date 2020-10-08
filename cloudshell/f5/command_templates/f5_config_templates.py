@@ -2,6 +2,9 @@ from collections import OrderedDict
 
 from cloudshell.cli.command_template.command_template import CommandTemplate
 
+CURL_ERROR_MAP = OrderedDict(
+    [(r"curl:|[Ff]ail|[Ee]rror", "Uploading/downloading file via CURL failed")]
+)
 ACTION_MAP = OrderedDict(
     [
         (
@@ -11,6 +14,7 @@ ACTION_MAP = OrderedDict(
     ]
 )
 
+
 SAVE_CONFIG_LOCALLY = CommandTemplate("save /sys ucs {file_path} no-private-key")
 LOAD_CONFIG_LOCALLY = CommandTemplate(
     "load /sys ucs {file_path} no-license", action_map=ACTION_MAP
@@ -19,8 +23,12 @@ LOAD_CLUSTER_CONFIG_LOCALLY = CommandTemplate(
     "load /sys ucs {file_path} no-license include-chassis-level-config"
 )
 
-UPLOAD_FILE_FROM_DEVICE = CommandTemplate("curl --upload-file {file_path} {url}")
-DOWNLOAD_FILE_TO_DEVICE = CommandTemplate("curl -o {file_path} {url}")
+UPLOAD_FILE_FROM_DEVICE = CommandTemplate(
+    "curl --insecure --upload-file {file_path} {url}", error_map=CURL_ERROR_MAP
+)
+DOWNLOAD_FILE_TO_DEVICE = CommandTemplate(
+    "curl --insecure {url} -o {file_path} ", error_map=CURL_ERROR_MAP
+)
 INSTALL_FIRMWARE = CommandTemplate(
     "install sys software image {file_path} volume {boot_volume} create-volume",
     error_map=OrderedDict(
