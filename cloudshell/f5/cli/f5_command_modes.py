@@ -2,7 +2,7 @@ import re
 import time
 from collections import OrderedDict
 
-from cloudshell.cli.command_mode import CommandMode
+from cloudshell.cli.service.command_mode import CommandMode
 
 
 class EnableCommandMode(CommandMode):
@@ -10,37 +10,23 @@ class EnableCommandMode(CommandMode):
     ENTER_COMMAND = "enable"
     EXIT_COMMAND = ""
 
-    def __init__(self, resource_config, api):
-        """Init command.
-
-        :param resource_config:
-        """
+    def __init__(self, resource_config):
         self.resource_config = resource_config
-        self._api = api
-        self._enable_password = None
-
-        CommandMode.__init__(
-            self,
-            EnableCommandMode.PROMPT,
-            EnableCommandMode.ENTER_COMMAND,
-            EnableCommandMode.EXIT_COMMAND,
+        super(EnableCommandMode, self).__init__(
+            prompt=self.PROMPT,
+            enter_command=self.ENTER_COMMAND,
+            exit_command=self.EXIT_COMMAND,
             enter_action_map=self.enter_action_map(),
             exit_action_map=self.exit_action_map(),
             enter_error_map=self.enter_error_map(),
             exit_error_map=self.exit_error_map(),
         )
 
-    @property
-    def enable_password(self):
-        if not self._enable_password:
-            password = self.resource_config.enable_password
-            self._enable_password = self._api.DecryptPassword(password).Value
-        return self._enable_password
-
     def enter_action_map(self):
         return {
             "[Pp]assword": lambda session, logger: session.send_line(
-                self.enable_password, logger
+                self.resource_config.enable_password, logger
+                # self.enable_password, logger
             )
         }
 
@@ -53,6 +39,13 @@ class EnableCommandMode(CommandMode):
     def exit_error_map(self):
         return OrderedDict()
 
+#     @property
+#     def enable_password(self):
+#         if not self._enable_password:
+#             password = self.resource_config.enable_password
+#             self._enable_password = self._api.DecryptPassword(password).Value
+#         return self._enable_password
+
 
 class ConfigCommandMode(CommandMode):
     MAX_ENTER_CONFIG_MODE_RETRIES = 5
@@ -62,16 +55,10 @@ class ConfigCommandMode(CommandMode):
     EXIT_COMMAND = "quit"
     ENTER_ACTION_COMMANDS = []
 
-    def __init__(self, resource_config, api):
-        """Init command.
-
-        :param resource_config:
-        """
+    def __init__(self, resource_config):
         self.resource_config = resource_config
-        self._api = api
 
-        CommandMode.__init__(
-            self,
+        super(ConfigCommandMode, self).__init__(
             ConfigCommandMode.PROMPT,
             ConfigCommandMode.ENTER_COMMAND,
             ConfigCommandMode.EXIT_COMMAND,
@@ -93,8 +80,10 @@ class ConfigCommandMode(CommandMode):
     def exit_action_map(self):
         return {self.PROMPT: lambda session, logger: session.send_line("quit", logger)}
 
+# todo all these needed?
+
     def enter_actions(self, cli_service):
-        for cmd in self.ENTER_ACTION_COMMANDS:
+        for cmd in self.ENTER_ACTION_COMMANDS:  # todo not used?
             cli_service.send_command(cmd)
 
     def _check_config_mode(self, session, logger):
