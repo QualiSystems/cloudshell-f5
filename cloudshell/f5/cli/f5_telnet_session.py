@@ -13,13 +13,13 @@ class F5TelnetSession(TelnetSession):
             session.password, logger
         )
 
-        cli_action_key = r"[%>#]{1}\s*$"  # todo this string is also taken from juniper shell
+        cli_action_key = r"[%>#]{1}\s*$"
 
         def action(session, sess_logger):
             session.send_line("cli", sess_logger)
             del action_map[cli_action_key]
 
-        action_map[r"[%>#]{1}\s*$"] = action  # todo as well as this one (?) idk why they are hardcoded #todo
+        action_map[r"[%>#]{1}\s*$"] = action  # todo used to be hardcoded
         self.hardware_expect(
             None,
             expected_string=prompt,

@@ -1,10 +1,12 @@
 import time
+
 from cloudshell.cli.session.session_exceptions import ExpectedSessionException
+from cloudshell.shell.flows.firmware.basic_flow import AbstractFirmwareFlow
+
 from cloudshell.f5.command_actions.sys_config_actions import (
     F5SysActions,
     F5SysConfigActions,
 )
-from cloudshell.shell.flows.firmware.basic_flow import AbstractFirmwareFlow
 
 
 class F5FirmwareFlow(AbstractFirmwareFlow):

@@ -39,13 +39,6 @@ class EnableCommandMode(CommandMode):
     def exit_error_map(self):
         return OrderedDict()
 
-#     @property
-#     def enable_password(self):
-#         if not self._enable_password:
-#             password = self.resource_config.enable_password
-#             self._enable_password = self._api.DecryptPassword(password).Value
-#         return self._enable_password
-
 
 class ConfigCommandMode(CommandMode):
     MAX_ENTER_CONFIG_MODE_RETRIES = 5
