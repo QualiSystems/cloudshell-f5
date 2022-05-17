@@ -1,15 +1,17 @@
 # from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.snmp.snmp_configurator import EnableDisableSnmpFlowInterface
-
-# from cloudshell.f5.command_actions.commit_rollback_actions import (
-#     CommitRollbackActions,
-# )  # todo idk probs shouldn't be here at all?
+from cloudshell.snmp.snmp_parameters import \
+    SNMPWriteParameters  # todo write ok? used to be v2write
 
 from cloudshell.f5.command_actions.enable_disable_snmp_actions import (
     SnmpV2Actions,
     SnmpV3Actions,
 )
-from cloudshell.snmp.snmp_parameters import SNMPWriteParameters  # todo write ok? used to be v2write
+
+# from cloudshell.f5.command_actions.commit_rollback_actions import (
+#     CommitRollbackActions,
+# )  # todo idk probs shouldn't be here at all?
+
 # from cloudshell.snmp.snmp_parameters import SNMPV2WriteParameters
 
 
@@ -22,14 +24,9 @@ class F5EnableDisableSnmpFlow(EnableDisableSnmpFlowInterface):
         :param logging.Logger logger:
         :return:
         """
-        # super(F5EnableDisableSnmpFlow, self).__init__(cli_configurator, logger)  # todo wrong args, commented
         self._cli_configurator = cli_configurator
         self._logger = logger
         self._create_group = create_group
-
-    #
-    # enable
-    #
 
     def enable_snmp(self, snmp_parameters):
         with self._cli_configurator.config_mode_service() as cli_service:
@@ -53,7 +50,6 @@ class F5EnableDisableSnmpFlow(EnableDisableSnmpFlowInterface):
         snmp_actions = SnmpV2Actions(cli_service=cli_service, logger=self._logger)
 
         is_read_only_community = not isinstance(snmp_parameters, SNMPWriteParameters)  # todo ok?
-        # is_read_only_community = not isinstance(snmp_parameters, SNMPV2WriteParameters)
         current_snmp_community_list = snmp_actions.get_current_snmp_communities()
 
         if snmp_parameters.snmp_community not in current_snmp_community_list:
@@ -111,10 +107,6 @@ class F5EnableDisableSnmpFlow(EnableDisableSnmpFlowInterface):
                 raise Exception(
                     "Failed to configure snmp parameters. Please see logs for details"
                 )
-
-    #
-    # disable
-    #
 
     def disable_snmp(self, snmp_parameters):
         with self._cli_configurator.config_mode_service() as cli_service:
