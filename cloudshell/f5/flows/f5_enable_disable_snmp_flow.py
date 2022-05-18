@@ -1,6 +1,7 @@
 from cloudshell.snmp.snmp_configurator import EnableDisableSnmpFlowInterface
-from cloudshell.snmp.snmp_parameters import \
-    SNMPWriteParameters  # todo write ok? used to be v2write
+from cloudshell.snmp.snmp_parameters import (  # todo write ok? used to be v2write
+    SNMPWriteParameters,
+)
 
 from cloudshell.f5.command_actions.enable_disable_snmp_actions import (
     SnmpV2Actions,

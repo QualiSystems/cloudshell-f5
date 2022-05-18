@@ -26,7 +26,6 @@ class EnableCommandMode(CommandMode):
         return {
             "[Pp]assword": lambda session, logger: session.send_line(
                 self.resource_config.enable_password, logger
-                # self.enable_password, logger
             )
         }
 
@@ -73,7 +72,7 @@ class ConfigCommandMode(CommandMode):
     def exit_action_map(self):
         return {self.PROMPT: lambda session, logger: session.send_line("quit", logger)}
 
-# todo all these needed?
+    # todo all these needed?
 
     def enter_actions(self, cli_service):
         for cmd in self.ENTER_ACTION_COMMANDS:  # todo not used?
