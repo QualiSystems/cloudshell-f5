@@ -42,7 +42,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         local_path = "{}/{}".format(self._local_storage, filename)
 
         with self._cli_handler.get_cli_service(
-                self._cli_handler.enable_mode
+            self._cli_handler.enable_mode
         ) as session:
             sys_actions = F5SysActions(session, logger=self._logger)
             sys_actions.download_config(local_path, path)

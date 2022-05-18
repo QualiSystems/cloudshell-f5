@@ -1,4 +1,3 @@
-
 from cloudshell.shell.flows.autoload.basic_flow import AbstractAutoloadFlow
 
 from cloudshell.f5.autoload.f5_generic_snmp_autoload import (
@@ -19,7 +18,5 @@ class BigIPAutoloadFlow(AbstractAutoloadFlow):
 
     def _autoload_flow(self, supported_os, resource_model):
         with self._snmp_configurator.get_service() as snmp_service:
-            f5_snmp_autoload = F5FirewallGenericSNMPAutoload(
-                snmp_service, self._logger
-            )
+            f5_snmp_autoload = F5FirewallGenericSNMPAutoload(snmp_service, self._logger)
             return f5_snmp_autoload.discover(supported_os, resource_model)
