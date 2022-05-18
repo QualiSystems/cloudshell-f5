@@ -1,4 +1,3 @@
-# from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.snmp.snmp_configurator import EnableDisableSnmpFlowInterface
 from cloudshell.snmp.snmp_parameters import \
     SNMPWriteParameters  # todo write ok? used to be v2write
@@ -7,12 +6,6 @@ from cloudshell.f5.command_actions.enable_disable_snmp_actions import (
     SnmpV2Actions,
     SnmpV3Actions,
 )
-
-# from cloudshell.f5.command_actions.commit_rollback_actions import (
-#     CommitRollbackActions,
-# )  # todo idk probs shouldn't be here at all?
-
-# from cloudshell.snmp.snmp_parameters import SNMPV2WriteParameters
 
 
 class F5EnableDisableSnmpFlow(EnableDisableSnmpFlowInterface):
@@ -49,7 +42,7 @@ class F5EnableDisableSnmpFlow(EnableDisableSnmpFlowInterface):
 
         snmp_actions = SnmpV2Actions(cli_service=cli_service, logger=self._logger)
 
-        is_read_only_community = not isinstance(snmp_parameters, SNMPWriteParameters)  # todo ok?
+        is_read_only_community = not isinstance(snmp_parameters, SNMPWriteParameters)
         current_snmp_community_list = snmp_actions.get_current_snmp_communities()
 
         if snmp_parameters.snmp_community not in current_snmp_community_list:

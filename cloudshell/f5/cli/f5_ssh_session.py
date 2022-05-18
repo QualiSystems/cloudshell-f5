@@ -6,8 +6,7 @@ from cloudshell.cli.session.ssh_session import SSHSession
 class F5SSHSession(SSHSession):
     def _connect_actions(self, prompt, logger):
         action_map = OrderedDict()
-        # cli_action_key = r"[%>#]{1}\s*$"
-        cli_action_key = r"[%>#]{1}\s*$"  # todo taken from juniper, assuming it's ok for f5 too
+        cli_action_key = r"[%>#]{1}\s*$"  # todo taken from juniper ok?
 
         def action(session, sess_logger):
             session.send_line("cli", sess_logger)
