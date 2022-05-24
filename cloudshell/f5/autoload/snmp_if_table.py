@@ -1,50 +1,23 @@
-import re
-
-from cloudshell.f5.autoload.snmp_if_entity import SnmpIfEntity
-from cloudshell.f5.autoload.snmp_port_attr_tables import SnmpPortAttrTables
+from cloudshell.snmp.autoload.snmp_if_table import SnmpIfTable
 
 
-class SnmpIfTable(object):
-    def __init__(self, snmp_handler, logger):
-        self._snmp = snmp_handler
-        self._logger = logger
-        self._load_snmp_tables()
-        self._if_entities_dict = {}
-        self.port_attributes_snmp_tables = SnmpPortAttrTables(snmp_handler, logger)
-
-    @property
-    def if_entities(self):
-        if not self._if_entities_dict:
-            self._get_if_entities()
-        return self._if_entities_dict.values()
+class F5SnmpIfTable(SnmpIfTable):
+    PORT_EXCLUDE_LIST = ["mgmt", "management", "loopback", "null"]
 
     def _get_if_entities(self):
-        for index in self._if_table.keys():
-            self._if_entities_dict[index] = SnmpIfEntity(
-                snmp_handler=self._snmp,
-                logger=self._logger,
-                index=index,
-                port_attributes_snmp_tables=self.port_attributes_snmp_tables,
-            )
-
-    def _load_snmp_tables(self):
-        """Load all cisco required snmp tables.
-
-        :return:
-        """
-        self._logger.info("Start loading MIB tables:")
-        self._if_table = self._snmp.get_table("IF-MIB", "ifDescr")
-        self._logger.info("ifIndex table loaded")
-
-        self._logger.info("MIB Tables loaded successfully")
-
-    def get_if_index_from_port_name(self, port_name, port_filter_list):
-        for interface in self.if_entities:
-            if not re.search("ethernet|other", interface.if_type, re.IGNORECASE):
-                continue
-            if re.search(
-                r"^(?!.*{0}){1}$".format(port_filter_list, port_name),
-                interface.if_name,
-                re.IGNORECASE,
+        for port in self._if_table:
+            # commented default logic piece due to dot (.) being legal for f5
+            # if "." in port.safe_value:
+            #     continue
+            if any(
+                    port_channel
+                    for port_channel in self.PORT_CHANNEL_NAME
+                    if port_channel in port.safe_value.lower()
             ):
-                return interface
+                self._add_port_channel(port)
+            elif not any(
+                    exclude_port
+                    for exclude_port in self.port_exclude_list
+                    if exclude_port in port.safe_value.lower()
+            ):
+                self._add_port(port)
