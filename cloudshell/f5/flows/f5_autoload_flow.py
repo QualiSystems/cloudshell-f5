@@ -1,5 +1,3 @@
-import os
-
 from cloudshell.f5.autoload.f5_generic_snmp_autoload import (
     F5FirewallGenericSNMPAutoload,
 )
