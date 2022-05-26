@@ -1,4 +1,4 @@
-cloudshell-cli
-cloudshell-snmp
-cloudshell-shell-flows
-cloudshell-snmp-autoload
+cloudshell-cli~=4.0.5
+cloudshell-snmp~=4.0.2
+cloudshell-shell-flows~=1.0.5
+cloudshell-snmp-autoload~=1.0.3
