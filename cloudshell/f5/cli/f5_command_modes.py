@@ -72,10 +72,8 @@ class ConfigCommandMode(CommandMode):
     def exit_action_map(self):
         return {self.PROMPT: lambda session, logger: session.send_line("quit", logger)}
 
-    # todo all these needed?
-
     def enter_actions(self, cli_service):
-        for cmd in self.ENTER_ACTION_COMMANDS:  # todo not used?
+        for cmd in self.ENTER_ACTION_COMMANDS:
             cli_service.send_command(cmd)
 
     def _check_config_mode(self, session, logger):
