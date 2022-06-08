@@ -1,3 +1,4 @@
+import time
 import warnings
 
 import jsonpickle
@@ -19,9 +20,12 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
     @property
     def _file_system(self):
-        return self._local_storage  # todo used to be hardcoded
+        return self._local_storage
 
     def _save_flow(self, folder_path, configuration_type, vrf_management_name):
+        save_fail_retries = 10
+        save_fail_wait = 3
+
         filename = "{}.ucs".format(folder_path.split("/")[-1])
         local_path = "/".join((self._local_storage, filename))
         with self._cli_handler.get_cli_service(
@@ -31,7 +35,17 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )
-                sys_config_actions.save_config(local_path)
+                for retry in range(save_fail_retries):
+                    output = sys_config_actions.save_config(local_path)
+                    if "connection to mcpd has been lost" in output:
+                        self._logger.warning(
+                            f"save failed becasue mcpd appears "
+                            f"to be down (retry {retry}/{save_fail_retries})"
+                        )
+                        time.sleep(save_fail_wait)
+                    else:
+                        self._logger.debug("mcpd is up - save success")
+                        break
             sys_actions = F5SysActions(session, logger=self._logger)
             sys_actions.upload_config(local_path, folder_path)
 
