@@ -37,12 +37,17 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 )
                 for retry in range(save_fail_retries):
                     # todo cleanup
-                    from cloudshell.cli.session.session_exceptions import CommandExecutionException
+                    from cloudshell.cli.session.session_exceptions import (
+                        CommandExecutionException,
+                    )
+
                     try:
                         output = sys_config_actions.save_config(local_path)
                     except CommandExecutionException as e:
-                        self._logger.warning(f"catched exception {e} during save attempt")
-                        self._logger.warning(f"retrying... after short delay")
+                        self._logger.warning(
+                            f"caught exception {e} during save attempt"
+                        )
+                        self._logger.warning("retrying... after short delay")
                         time.sleep(save_fail_wait)
                         continue
 
