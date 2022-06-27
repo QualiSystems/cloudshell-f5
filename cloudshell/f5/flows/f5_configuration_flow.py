@@ -2,7 +2,9 @@ import time
 import warnings
 
 import jsonpickle
-
+from cloudshell.cli.session.session_exceptions import (
+    CommandExecutionException,
+)
 from cloudshell.shell.flows.configuration.basic_flow import AbstractConfigurationFlow
 
 from cloudshell.f5.command_actions.sys_config_actions import (
@@ -36,21 +38,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                     config_session, logger=self._logger
                 )
                 for retry in range(save_fail_retries):
-                    # todo cleanup
-                    from cloudshell.cli.session.session_exceptions import (
-                        CommandExecutionException,
-                    )
-
-                    try:
-                        output = sys_config_actions.save_config(local_path)
-                    except CommandExecutionException as e:
-                        self._logger.warning(
-                            f"caught exception {e} during save attempt"
-                        )
-                        self._logger.warning("retrying... after short delay")
-                        time.sleep(save_fail_wait)
-                        continue
-
+                    output = sys_config_actions.save_config(local_path)
                     if "connection to mcpd has been lost" in output:
                         self._logger.warning(
                             f"save failed becasue mcpd appears "
@@ -66,6 +54,9 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
     def _restore_flow(
         self, path, configuration_type, restore_method, vrf_management_name
     ):
+        download_file_retries = 10
+        download_file_wait = 3
+
         filename = path.split("/")[-1]
         local_path = "{}/{}".format(self._local_storage, filename)
 
@@ -73,13 +64,25 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
             self._cli_handler.enable_mode
         ) as session:
             sys_actions = F5SysActions(session, logger=self._logger)
-            sys_actions.download_config(local_path, path)
+
+            for retry in range(download_file_retries):
+                try:
+                    sys_actions.download_config(local_path, path)
+                    self._logger.info("Config download success")
+                except CommandExecutionException as e:
+                    self._logger.warning(
+                        f"Caught exception {e} during config download"
+                    )
+                    self._logger.warning("retrying... after short delay")
+                    time.sleep(download_file_wait)
+                    continue
+
             with session.enter_mode(self._cli_handler.config_mode) as config_session:
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )
                 sys_config_actions.load_config(local_path)
-            sys_actions.reload_device(120)
+            sys_actions.reload_device(120)  # todo variable
 
     def orchestration_save(self, mode="shallow", custom_params=None):
         save_params = {
