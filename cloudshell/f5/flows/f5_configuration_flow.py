@@ -2,6 +2,7 @@ import time
 import warnings
 
 import jsonpickle
+
 from cloudshell.shell.flows.configuration.basic_flow import AbstractConfigurationFlow
 
 from cloudshell.f5.command_actions.sys_config_actions import (
@@ -10,7 +11,6 @@ from cloudshell.f5.command_actions.sys_config_actions import (
 )
 
 
-# todo i may have copypasted from the wrong place
 class F5ConfigurationFlow(AbstractConfigurationFlow):
     _local_storage = "/var/local/ucs"
 
@@ -36,7 +36,16 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                     config_session, logger=self._logger
                 )
                 for retry in range(save_fail_retries):
-                    output = sys_config_actions.save_config(local_path)
+                    # todo cleanup
+                    from cloudshell.cli.session.session_exceptions import CommandExecutionException
+                    try:
+                        output = sys_config_actions.save_config(local_path)
+                    except CommandExecutionException as e:
+                        self._logger.warning(f"catched exception {e} during save attempt")
+                        self._logger.warning(f"retrying... after short delay")
+                        time.sleep(save_fail_wait)
+                        continue
+
                     if "connection to mcpd has been lost" in output:
                         self._logger.warning(
                             f"save failed becasue mcpd appears "
@@ -67,7 +76,6 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 sys_config_actions.load_config(local_path)
             sys_actions.reload_device(120)
 
-    # todo test
     def orchestration_save(self, mode="shallow", custom_params=None):
         save_params = {
             "folder_path": "",
@@ -85,7 +93,6 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
         return path
 
-    # todo test
     def orchestration_restore(self, saved_artifact_info, custom_params=None):
         warnings.warn(
             "orchestration_restore is deprecated. Use 'restore' instead",
