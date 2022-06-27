@@ -2,9 +2,8 @@ import time
 import warnings
 
 import jsonpickle
-from cloudshell.cli.session.session_exceptions import (
-    CommandExecutionException,
-)
+
+from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.shell.flows.configuration.basic_flow import AbstractConfigurationFlow
 
 from cloudshell.f5.command_actions.sys_config_actions import (
@@ -70,9 +69,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                     sys_actions.download_config(local_path, path)
                     self._logger.info("Config download success")
                 except CommandExecutionException as e:
-                    self._logger.warning(
-                        f"Caught exception {e} during config download"
-                    )
+                    self._logger.warning(f"Caught exception {e} during config download")
                     self._logger.warning("retrying... after short delay")
                     time.sleep(download_file_wait)
                     continue
