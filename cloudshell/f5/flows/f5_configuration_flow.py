@@ -4,7 +4,11 @@ import warnings
 import jsonpickle
 
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
-from cloudshell.shell.flows.configuration.basic_flow import AbstractConfigurationFlow
+from cloudshell.shell.flows.configuration.basic_flow import (
+    AbstractConfigurationFlow,
+    ConfigurationType,
+    RestoreMethod,
+)
 
 from cloudshell.f5.command_actions.sys_config_actions import (
     F5SysActions,
@@ -14,6 +18,13 @@ from cloudshell.f5.command_actions.sys_config_actions import (
 
 class F5ConfigurationFlow(AbstractConfigurationFlow):
     _local_storage = "/var/local/ucs"
+
+    SUPPORTED_CONFIGURATION_TYPES: set[ConfigurationType] = {
+        ConfigurationType.RUNNING,
+    }
+    SUPPORTED_RESTORE_METHODS: set[RestoreMethod] = {
+        RestoreMethod.OVERRIDE,
+    }
 
     def __init__(self, resource_config, logger, cli_handler):
         super(F5ConfigurationFlow, self).__init__(logger, resource_config)
@@ -69,6 +80,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 try:
                     sys_actions.download_config(local_path, path)
                     self._logger.info("Config download success")
+                    break
                 except CommandExecutionException as e:
                     self._logger.warning(f"Caught exception {e} during config download")
                     self._logger.warning("retrying... after short delay")
