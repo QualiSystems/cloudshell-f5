@@ -29,6 +29,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
         filename = "{}.ucs".format(folder_path.split("/")[-1])
         local_path = "/".join((self._local_storage, filename))
+
         with self._cli_handler.get_cli_service(
             self._cli_handler.enable_mode
         ) as session:
@@ -57,7 +58,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         download_file_wait = 3
 
         filename = path.split("/")[-1]
-        local_path = "{}/{}".format(self._local_storage, filename)
+        local_path = "{}/{}.ucs".format(self._local_storage, filename)
 
         with self._cli_handler.get_cli_service(
             self._cli_handler.enable_mode
