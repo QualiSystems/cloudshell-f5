@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 import warnings
 
@@ -31,14 +33,14 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         self._cli_handler = cli_handler
 
     @property
-    def _file_system(self):
+    def file_system(self):
         return self._local_storage
 
     def _save_flow(self, folder_path, configuration_type, vrf_management_name):
         save_fail_retries = 10
         save_fail_wait = 3
 
-        filename = "{}.ucs".format(folder_path.split("/")[-1])
+        filename = f"{folder_path.filename}.ucs"
         local_path = "/".join((self._local_storage, filename))
 
         with self._cli_handler.get_cli_service(
@@ -68,7 +70,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         download_file_retries = 10
         download_file_wait = 3
 
-        filename = path.split("/")[-1]
+        filename = path.filename
         local_path = "{}/{}.ucs".format(self._local_storage, filename)
 
         with self._cli_handler.get_cli_service(
