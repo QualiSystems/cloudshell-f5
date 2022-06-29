@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import time
-import warnings
-
-import jsonpickle
 
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.shell.flows.configuration.basic_flow import (
@@ -70,6 +67,8 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         download_file_retries = 10
         download_file_wait = 3
 
+        restart_timeout = 120
+
         filename = path.filename
         local_path = "{}/{}.ucs".format(self._local_storage, filename)
 
@@ -94,27 +93,4 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                     config_session, logger=self._logger
                 )
                 sys_config_actions.load_config(local_path)
-            sys_actions.reload_device(120)  # todo variable
-
-    def orchestration_save(self, mode="shallow", custom_params=None):
-        save_params = {
-            "folder_path": "",
-            "configuration_type": "running",
-            "return_full_path": True,
-        }
-        params = {}
-        if custom_params:
-            params = jsonpickle.decode(custom_params)
-
-        save_params.update(params.get("custom_params", {}))
-        save_params["folder_path"] = self._get_path(save_params["folder_path"])
-
-        path = self.save(**save_params)
-
-        return path
-
-    def orchestration_restore(self, saved_artifact_info, custom_params=None):
-        warnings.warn(
-            "orchestration_restore is deprecated. Use 'restore' instead",
-            DeprecationWarning,
-        )
+            sys_actions.reload_device(restart_timeout)
