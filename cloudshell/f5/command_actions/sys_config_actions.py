@@ -101,7 +101,7 @@ class F5SysActions(object):
                 ),
             }
         )
-        output = CommandTemplateExecutor(
+        CommandTemplateExecutor(
             self._cli_service,
             f5_config_templates.DOWNLOAD_FILE_TO_DEVICE_SCP,
             action_map=password_prompt_action_map,
