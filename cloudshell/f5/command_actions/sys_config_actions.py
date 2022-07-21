@@ -1,10 +1,12 @@
 import re
 import time
+from collections import OrderedDict
 
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
 )
 from cloudshell.cli.session.session_exceptions import SessionException
+from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_templates import f5_config_templates
 
@@ -27,6 +29,7 @@ class F5SysConfigActions(object):
         return output
 
     def install_firmware(self, file_path, boot_volume):
+        # todo not in standard?
         output = CommandTemplateExecutor(
             self._cli_service, f5_config_templates.INSTALL_FIRMWARE, timeout=180
         ).execute_command(file_path=file_path, boot_volume=boot_volume)
@@ -77,15 +80,32 @@ class F5SysActions(object):
         self._cli_service = cli_service
         self._logger = logger
 
-    def download_config(self, file_path, server_config_url):
+    def download_config(self, file_path, remote_url):
         """Download file from FTP/TFTP Server."""
         output = CommandTemplateExecutor(
             self._cli_service, f5_config_templates.DOWNLOAD_FILE_TO_DEVICE, timeout=180
-        ).execute_command(file_path=file_path, url=server_config_url)
+        ).execute_command(file_path=file_path, url=remote_url)
 
         if re.search(r"curl:|[Ff]ail|[Ee]rror]", output, re.IGNORECASE):
             self._logger.error("Failed to download configuration: {}".format(output))
             raise Exception("Failed to download configuration.")
+
+    def download_config_scp(self, file_path: str, remote_url: RemoteURL):
+        password_prompt_action_map = OrderedDict(
+            {
+                (
+                    r"[Pp]assword:?",
+                    lambda session, logger: session.send_line(
+                        remote_url.password, logger
+                    ),
+                ),
+            }
+        )
+        output = CommandTemplateExecutor(
+            self._cli_service,
+            f5_config_templates.DOWNLOAD_FILE_TO_DEVICE_SCP,
+            action_map=password_prompt_action_map,
+        ).execute_command(remote_url=remote_url, local_path=file_path)
 
     def upload_config(self, file_path, server_config_url):
         """Upload file to FTP/TFTP Server."""

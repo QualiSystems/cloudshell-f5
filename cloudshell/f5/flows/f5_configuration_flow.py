@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import warnings
 
 from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.shell.flows.configuration.basic_flow import (
@@ -8,6 +9,7 @@ from cloudshell.shell.flows.configuration.basic_flow import (
     ConfigurationType,
     RestoreMethod,
 )
+from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_actions.sys_config_actions import (
     F5SysActions,
@@ -33,7 +35,9 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
     def file_system(self):
         return self._local_storage
 
-    def _save_flow(self, folder_path, configuration_type, vrf_management_name):
+    def _save_flow(
+        self, folder_path: RemoteURL, configuration_type, vrf_management_name
+    ):
         save_fail_retries = 10
         save_fail_wait = 3
 
@@ -62,7 +66,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
             sys_actions.upload_config(local_path, folder_path)
 
     def _restore_flow(
-        self, path, configuration_type, restore_method, vrf_management_name
+        self, path: RemoteURL, configuration_type, restore_method, vrf_management_name
     ):
         download_file_retries = 10
         download_file_wait = 3
@@ -79,12 +83,17 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
             for retry in range(download_file_retries):
                 try:
-                    sys_actions.download_config(local_path, path)
+                    if path.scheme == "scp":
+                        sys_actions.download_config_scp(local_path, path)
+                    else:
+                        sys_actions.download_config(local_path, path)
                     self._logger.info("Config download success")
                     break
                 except CommandExecutionException as e:
                     self._logger.warning(f"Caught exception {e} during config download")
-                    self._logger.warning("retrying... after short delay")
+                    self._logger.warning(
+                        "retrying... after short delay"
+                    )  # todo retries needed?
                     time.sleep(download_file_wait)
                     continue
 
@@ -94,3 +103,9 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 )
                 sys_config_actions.load_config(local_path)
             sys_actions.reload_device(restart_timeout)
+
+    def orchestration_restore(self, saved_artifact_info, custom_params=None):
+        warnings.warn(
+            "orchestration_restore is deprecated. Use 'restore' instead",
+            DeprecationWarning,
+        )
