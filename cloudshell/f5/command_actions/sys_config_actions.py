@@ -118,7 +118,7 @@ class F5SysActions(object):
         if remote_url.scheme == "scp":
             CommandTemplateExecutor(
                 self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE_SCP
-            ).execute_command(file_path=file_path, url=remote_url)
+            ).execute_command(remote_url=remote_url, local_path=file_path)
         else:
             CommandTemplateExecutor(
                 self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
