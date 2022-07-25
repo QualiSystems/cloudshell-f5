@@ -5,6 +5,9 @@ from cloudshell.cli.command_template.command_template import CommandTemplate
 CURL_ERROR_MAP = OrderedDict(
     [(r"curl:|[Ff]ail|[Ee]rror", "Uploading/downloading file via CURL failed")]
 )
+GENERIC_ERROR_MAP = OrderedDict(
+    [(r"[Ff]ail|[Ee]rror", "Generic error occurred")]
+)
 
 ACTION_MAP = OrderedDict(
     [
@@ -26,12 +29,15 @@ LOAD_CLUSTER_CONFIG_LOCALLY = CommandTemplate(
 UPLOAD_FILE_FROM_DEVICE = CommandTemplate(
     "curl --insecure --upload-file {file_path} {url}", error_map=CURL_ERROR_MAP
 )
+UPLOAD_FILE_FROM_DEVICE_SCP = CommandTemplate(
+    "scp {local_path} {remote_url.username}@{remote_url.host}:{remote_url.path}", error_map=GENERIC_ERROR_MAP
+)
+
 DOWNLOAD_FILE_TO_DEVICE = CommandTemplate(
     "curl --insecure {url} -o {file_path} ", error_map=CURL_ERROR_MAP
 )
-
 DOWNLOAD_FILE_TO_DEVICE_SCP = CommandTemplate(
-    "scp {remote_url.username}@{remote_url.host}:{remote_url.path} {local_path}",
+    "scp {remote_url.username}@{remote_url.host}:{remote_url.path} {local_path}", error_map=GENERIC_ERROR_MAP
 )
 
 INSTALL_FIRMWARE = CommandTemplate(

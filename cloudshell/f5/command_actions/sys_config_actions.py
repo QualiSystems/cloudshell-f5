@@ -80,42 +80,46 @@ class F5SysActions(object):
         self._cli_service = cli_service
         self._logger = logger
 
-    def download_config(self, file_path, remote_url):
+    def download_config(self, file_path: str, remote_url: RemoteURL):
         """Download file from FTP/TFTP Server."""
-        output = CommandTemplateExecutor(
-            self._cli_service, f5_config_templates.DOWNLOAD_FILE_TO_DEVICE, timeout=180
-        ).execute_command(file_path=file_path, url=remote_url)
+        self._logger.debug(f"Downloading through {remote_url.scheme}")
+        if remote_url.scheme == "scp":
+            password_prompt_action_map = OrderedDict(
+                    {
+                        (
+                            r"[Pp]assword:?",
+                            lambda session, logger: session.send_line(
+                                remote_url.password, logger
+                            ),
+                        ),
+                    }
+                )
+            CommandTemplateExecutor(
+                self._cli_service,
+                f5_config_templates.DOWNLOAD_FILE_TO_DEVICE_SCP,
+                action_map=password_prompt_action_map,
+            ).execute_command(remote_url=remote_url, local_path=file_path)
+        else:
+            output = CommandTemplateExecutor(
+                self._cli_service, f5_config_templates.DOWNLOAD_FILE_TO_DEVICE, timeout=180
+            ).execute_command(file_path=file_path, url=remote_url)
+            if re.search(r"curl:|[Ff]ail|[Ee]rror]", output, re.IGNORECASE):
+                self._logger.error("Failed to download configuration: {}".format(output))
+                raise Exception("Failed to download configuration.")
 
-        if re.search(r"curl:|[Ff]ail|[Ee]rror]", output, re.IGNORECASE):
-            self._logger.error("Failed to download configuration: {}".format(output))
-            raise Exception("Failed to download configuration.")
-
-    def download_config_scp(self, file_path: str, remote_url: RemoteURL):
-        password_prompt_action_map = OrderedDict(
-            {
-                (
-                    r"[Pp]assword:?",
-                    lambda session, logger: session.send_line(
-                        remote_url.password, logger
-                    ),
-                ),
-            }
-        )
-        CommandTemplateExecutor(
-            self._cli_service,
-            f5_config_templates.DOWNLOAD_FILE_TO_DEVICE_SCP,
-            action_map=password_prompt_action_map,
-        ).execute_command(remote_url=remote_url, local_path=file_path)
-
-    def upload_config(self, file_path, server_config_url):
+    def upload_config(self, file_path: str, remote_url: RemoteURL):
         """Upload file to FTP/TFTP Server."""
-        output = CommandTemplateExecutor(
-            self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
-        ).execute_command(file_path=file_path, url=server_config_url)
-
-        if re.search(r"curl:|[Ff]ail|[Ee]rror]", output, re.IGNORECASE):
-            self._logger.error("Failed to upload configuration: {}".format(output))
-            raise Exception("Failed to upload configuration.")
+        # todo  try (1) scp or (2) retries
+        # curl: (55) Network is unreachable
+        if remote_url.scheme == "scp":
+            CommandTemplateExecutor(
+                self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE_SCP
+            ).execute_command(file_path=file_path, url=remote_url)
+        else:
+            CommandTemplateExecutor(
+                self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
+            ).execute_command(file_path=file_path, url=remote_url)
+        self._logger.debug("Upload config success")
 
     def reload_device(self, timeout, action_map=None, error_map=None):
         """Reload device.

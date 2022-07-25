@@ -36,12 +36,12 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         return self._local_storage
 
     def _save_flow(
-        self, folder_path: RemoteURL, configuration_type, vrf_management_name
+        self, remote_url: RemoteURL, configuration_type, vrf_management_name
     ):
         save_fail_retries = 10
         save_fail_wait = 3
 
-        filename = f"{folder_path.filename}.ucs"
+        filename = f"{remote_url.filename}.ucs"
         local_path = "/".join((self._local_storage, filename))
 
         with self._cli_handler.get_cli_service(
@@ -63,7 +63,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                         self._logger.debug("mcpd is up - save success")
                         break
             sys_actions = F5SysActions(session, logger=self._logger)
-            sys_actions.upload_config(local_path, folder_path)
+            sys_actions.upload_config(local_path, remote_url)
 
     def _restore_flow(
         self, path: RemoteURL, configuration_type, restore_method, vrf_management_name
@@ -83,10 +83,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
             for retry in range(download_file_retries):
                 try:
-                    if path.scheme == "scp":
-                        sys_actions.download_config_scp(local_path, path)
-                    else:
-                        sys_actions.download_config(local_path, path)
+                    sys_actions.download_config(local_path, path)
                     self._logger.info("Config download success")
                     break
                 except CommandExecutionException as e:
