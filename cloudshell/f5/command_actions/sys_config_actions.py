@@ -116,8 +116,20 @@ class F5SysActions(object):
         # todo  try (1) scp or (2) retries
         # curl: (55) Network is unreachable
         if remote_url.scheme == "scp":
+            password_prompt_action_map = OrderedDict(
+                {
+                    (
+                        r"[Pp]assword:?",
+                        lambda session, logger: session.send_line(
+                            remote_url.password, logger
+                        ),
+                    ),
+                }
+            )
             CommandTemplateExecutor(
-                self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE_SCP
+                self._cli_service,
+                f5_config_templates.UPLOAD_FILE_FROM_DEVICE_SCP,
+                action_map=password_prompt_action_map,
             ).execute_command(remote_url=remote_url, local_path=file_path)
         else:
             CommandTemplateExecutor(
