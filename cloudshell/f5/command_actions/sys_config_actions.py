@@ -85,15 +85,15 @@ class F5SysActions(object):
         self._logger.debug(f"Downloading through {remote_url.scheme}")
         if remote_url.scheme == "scp":
             password_prompt_action_map = OrderedDict(
-                    {
-                        (
-                            r"[Pp]assword:?",
-                            lambda session, logger: session.send_line(
-                                remote_url.password, logger
-                            ),
+                {
+                    (
+                        r"[Pp]assword:?",
+                        lambda session, logger: session.send_line(
+                            remote_url.password, logger
                         ),
-                    }
-                )
+                    ),
+                }
+            )
             CommandTemplateExecutor(
                 self._cli_service,
                 f5_config_templates.DOWNLOAD_FILE_TO_DEVICE_SCP,
@@ -101,10 +101,14 @@ class F5SysActions(object):
             ).execute_command(remote_url=remote_url, local_path=file_path)
         else:
             output = CommandTemplateExecutor(
-                self._cli_service, f5_config_templates.DOWNLOAD_FILE_TO_DEVICE, timeout=180
+                self._cli_service,
+                f5_config_templates.DOWNLOAD_FILE_TO_DEVICE,
+                timeout=180,
             ).execute_command(file_path=file_path, url=remote_url)
             if re.search(r"curl:|[Ff]ail|[Ee]rror]", output, re.IGNORECASE):
-                self._logger.error("Failed to download configuration: {}".format(output))
+                self._logger.error(
+                    "Failed to download configuration: {}".format(output)
+                )
                 raise Exception("Failed to download configuration.")
 
     def upload_config(self, file_path: str, remote_url: RemoteURL):
