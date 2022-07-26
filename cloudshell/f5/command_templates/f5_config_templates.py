@@ -3,7 +3,10 @@ from collections import OrderedDict
 from cloudshell.cli.command_template.command_template import CommandTemplate
 
 CURL_ERROR_MAP = OrderedDict(
-    [(r"curl:|[Ff]ail|[Ee]rror", "Uploading/downloading file via CURL failed")]
+    [
+        (r"[Nn]etwork is unreachable", "Curl: network is unreachable"),
+        (r"curl:|[Ff]ail|[Ee]rror", "Uploading/downloading file via CURL failed"),
+    ]
 )
 GENERIC_ERROR_MAP = OrderedDict([(r"[Ff]ail|[Ee]rror", "Generic error occurred")])
 

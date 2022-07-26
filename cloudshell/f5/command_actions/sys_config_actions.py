@@ -5,7 +5,10 @@ from collections import OrderedDict
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
 )
-from cloudshell.cli.session.session_exceptions import SessionException
+from cloudshell.cli.session.session_exceptions import (
+    CommandExecutionException,
+    SessionException,
+)
 from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_templates import f5_config_templates
@@ -113,7 +116,6 @@ class F5SysActions(object):
 
     def upload_config(self, file_path: str, remote_url: RemoteURL):
         """Upload file to FTP/TFTP Server."""
-        # todo  try (1) scp or (2) retries
         # curl: (55) Network is unreachable
         if remote_url.scheme == "scp":
             password_prompt_action_map = OrderedDict(
@@ -132,9 +134,18 @@ class F5SysActions(object):
                 action_map=password_prompt_action_map,
             ).execute_command(remote_url=remote_url, local_path=file_path)
         else:
-            CommandTemplateExecutor(
-                self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
-            ).execute_command(file_path=file_path, url=remote_url)
+            for retry in range(1, 4):
+                try:
+                    CommandTemplateExecutor(
+                        self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
+                    ).execute_command(file_path=file_path, url=remote_url)
+                except CommandExecutionException as e:
+                    self._logger.warning(f"Catched exception {e} during config upload")
+                    if "network is unreachable" in e.args[0]:
+                        self._logger.warning(f"Retry {retry}/{3} failed")
+                        continue
+                    else:
+                        raise
         self._logger.debug("Upload config success")
 
     def reload_device(self, timeout, action_map=None, error_map=None):
