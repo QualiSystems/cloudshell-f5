@@ -166,7 +166,12 @@ class F5SysActions(object):
         except SessionException:
             self._logger.info("Device rebooted, starting reconnect")
 
-        self._cli_service.reconnect(timeout)
+        try:
+            self._cli_service.reconnect(timeout)
+        except AttributeError as e:  # todo AttributeError: 'NoneType' object has no attribute 'enter_actions'
+            self._logger.debug(f"Exception {e} while reconnecting, retrying")
+            time.sleep(5)
+            self._cli_service.reconnect(30)
 
     def copy_config(self, source_boot_volume, target_boot_volume):
         CommandTemplateExecutor(
