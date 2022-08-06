@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import re
 import time
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 from cloudshell.cli.service.command_mode import CommandMode
+
+if TYPE_CHECKING:
+    from typing import List
 
 
 class EnableCommandMode(CommandMode):
@@ -45,7 +51,7 @@ class ConfigCommandMode(CommandMode):
     PROMPT = r"\(tmos.*\)#\s*$"
     ENTER_COMMAND = "tmsh"
     EXIT_COMMAND = "quit"
-    ENTER_ACTION_COMMANDS = []
+    ENTER_ACTION_COMMANDS: List[str] = []
 
     def __init__(self, resource_config):
         self.resource_config = resource_config

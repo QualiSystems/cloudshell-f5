@@ -10,6 +10,13 @@ CURL_ERROR_MAP = OrderedDict(
 )
 GENERIC_ERROR_MAP = OrderedDict([(r"[Ff]ail|[Ee]rror", "Generic error occurred")])
 
+SCP_ERROR_MAP = OrderedDict(
+    [
+        (r"[Nn]o\s+such\s+file\s+or\s+directory", "File not found"),
+        (r"[Pp]ermission\s+denied", "Permission denied"),
+    ]
+)
+
 ACTION_MAP = OrderedDict(
     [
         (
@@ -19,12 +26,12 @@ ACTION_MAP = OrderedDict(
     ]
 )
 
-SAVE_CONFIG_LOCALLY = CommandTemplate("save /sys ucs {file_path} no-private-key")
+SAVE_CONFIG_LOCALLY = CommandTemplate("save sys ucs {file_path} no-private-key")
 LOAD_CONFIG_LOCALLY = CommandTemplate(
-    "load /sys ucs {file_path} no-license", action_map=ACTION_MAP
+    "load sys ucs {file_path} no-license", action_map=ACTION_MAP
 )
 LOAD_CLUSTER_CONFIG_LOCALLY = CommandTemplate(
-    "load /sys ucs {file_path} no-license include-chassis-level-config"
+    "load sys ucs {file_path} no-license include-chassis-level-config"
 )
 
 UPLOAD_FILE_FROM_DEVICE = CommandTemplate(
@@ -32,7 +39,7 @@ UPLOAD_FILE_FROM_DEVICE = CommandTemplate(
 )
 UPLOAD_FILE_FROM_DEVICE_SCP = CommandTemplate(
     "scp {local_path} {remote_url.username}@{remote_url.host}:{remote_url.path}",
-    error_map=GENERIC_ERROR_MAP,
+    error_map=OrderedDict(**GENERIC_ERROR_MAP, **SCP_ERROR_MAP),
 )
 
 DOWNLOAD_FILE_TO_DEVICE = CommandTemplate(
@@ -40,7 +47,7 @@ DOWNLOAD_FILE_TO_DEVICE = CommandTemplate(
 )
 DOWNLOAD_FILE_TO_DEVICE_SCP = CommandTemplate(
     "scp {remote_url.username}@{remote_url.host}:{remote_url.path} {local_path}",
-    error_map=GENERIC_ERROR_MAP,
+    error_map=OrderedDict(**GENERIC_ERROR_MAP, **SCP_ERROR_MAP),
 )
 
 INSTALL_FIRMWARE = CommandTemplate(
@@ -62,3 +69,4 @@ COPY_CONFIG = CommandTemplate("cpcfg --source={src_config} {dst_config}")
 # cpcfg --source=HD1.2 HD1.3
 
 SHOW_VERSION_PER_VOLUME = CommandTemplate("show sys software | grep HD")
+REMOVE_FILE = CommandTemplate("rm -rf {file_path}")
