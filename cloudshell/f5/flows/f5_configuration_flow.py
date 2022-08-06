@@ -1,20 +1,25 @@
 from __future__ import annotations
 
-import time
-import warnings
+from typing import TYPE_CHECKING
 
-from cloudshell.cli.session.session_exceptions import CommandExecutionException
 from cloudshell.shell.flows.configuration.basic_flow import (
     AbstractConfigurationFlow,
     ConfigurationType,
     RestoreMethod,
 )
-from cloudshell.shell.flows.utils.url import RemoteURL
+from cloudshell.shell.flows.utils.url import BasicLocalUrl
 
 from cloudshell.f5.command_actions.sys_config_actions import (
     F5SysActions,
     F5SysConfigActions,
 )
+
+if TYPE_CHECKING:
+    from typing import Union
+
+    from cloudshell.shell.flows.utils.url import RemoteURL
+
+    Url = Union[RemoteURL, BasicLocalUrl]
 
 
 class F5ConfigurationFlow(AbstractConfigurationFlow):
@@ -26,6 +31,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
     SUPPORTED_RESTORE_METHODS: set[RestoreMethod] = {
         RestoreMethod.OVERRIDE,
     }
+    LOCAL_FILE_EXT = ".ucs"
 
     def __init__(self, resource_config, logger, cli_handler):
         super(F5ConfigurationFlow, self).__init__(logger, resource_config)
@@ -36,13 +42,18 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
         return self._local_storage
 
     def _save_flow(
-        self, remote_url: RemoteURL, configuration_type, vrf_management_name
-    ):
-        save_fail_retries = 10
-        save_fail_wait = 3
-
-        filename = f"{remote_url.filename}.ucs"
-        local_path = "/".join((self._local_storage, filename))
+        self,
+        file_dst_url: Url,
+        configuration_type: ConfigurationType,
+        vrf_management_name: str | None,
+    ) -> str:
+        if isinstance(file_dst_url, BasicLocalUrl):
+            local_path = file_dst_url.safe_url
+            remote = False
+        else:
+            filename = file_dst_url.filename + self.LOCAL_FILE_EXT
+            local_path = "/".join((self._local_storage, filename))
+            remote = True
 
         with self._cli_handler.get_cli_service(
             self._cli_handler.enable_mode
@@ -51,58 +62,38 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )
-                for retry in range(save_fail_retries):
-                    output = sys_config_actions.save_config(local_path)
-                    if "connection to mcpd has been lost" in output:
-                        self._logger.warning(
-                            f"save failed becasue mcpd appears "
-                            f"to be down (retry {retry}/{save_fail_retries})"
-                        )
-                        time.sleep(save_fail_wait)
-                    else:
-                        self._logger.debug("mcpd is up - save success")
-                        break
-            sys_actions = F5SysActions(session, logger=self._logger)
-            sys_actions.upload_config(local_path, remote_url)
+                sys_config_actions.save_config(local_path)
+            if remote:
+                sys_actions = F5SysActions(session, logger=self._logger)
+                sys_actions.upload_config(local_path, file_dst_url)
+                sys_actions.remove_file(local_path)
+            return file_dst_url.filename
 
     def _restore_flow(
-        self, path: RemoteURL, configuration_type, restore_method, vrf_management_name
+        self, path: Url, configuration_type, restore_method, vrf_management_name
     ):
-        download_file_retries = 10
-        download_file_wait = 3
-
         restart_timeout = 120
 
-        filename = path.filename
-        local_path = "{}/{}.ucs".format(self._local_storage, filename)
+        if isinstance(path, BasicLocalUrl):
+            remote = False
+            local_path = path.url
+        else:
+            remote = True
+            filename = path.filename
+            local_path = (
+                "{}/{}".format(self._local_storage, filename) + self.LOCAL_FILE_EXT
+            )
 
         with self._cli_handler.get_cli_service(
             self._cli_handler.enable_mode
         ) as session:
             sys_actions = F5SysActions(session, logger=self._logger)
-
-            for retry in range(download_file_retries):
-                try:
-                    sys_actions.download_config(local_path, path)
-                    self._logger.info("Config download success")
-                    break
-                except CommandExecutionException as e:
-                    self._logger.warning(f"Caught exception {e} during config download")
-                    self._logger.warning(
-                        "retrying... after short delay"
-                    )  # todo retries needed?
-                    time.sleep(download_file_wait)
-                    continue
-
+            if remote:
+                sys_actions.download_config(local_path, path)
             with session.enter_mode(self._cli_handler.config_mode) as config_session:
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )
                 sys_config_actions.load_config(local_path)
+            sys_actions.remove_file(local_path)
             sys_actions.reload_device(restart_timeout)
-
-    def orchestration_restore(self, saved_artifact_info, custom_params=None):
-        warnings.warn(
-            "orchestration_restore is deprecated. Use 'restore' instead",
-            DeprecationWarning,
-        )

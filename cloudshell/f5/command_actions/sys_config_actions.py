@@ -5,10 +5,7 @@ from collections import OrderedDict
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
 )
-from cloudshell.cli.session.session_exceptions import (
-    CommandExecutionException,
-    SessionException,
-)
+from cloudshell.cli.session.session_exceptions import SessionException
 from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_templates import f5_config_templates
@@ -84,20 +81,24 @@ class F5SysActions(object):
         self._logger = logger
 
     def download_config(self, file_path: str, remote_url: RemoteURL):
-        """Download file from FTP/TFTP Server."""
+        """Download file from SCP/FTP/TFTP Server."""
         self._logger.debug(f"Downloading through {remote_url.scheme}")
         if remote_url.scheme == "scp":
             password_prompt_action_map = OrderedDict(
-                {
+                [
                     (
                         r"[Pp]assword:?",
                         lambda session, logger: session.send_line(
                             remote_url.password, logger
                         ),
                     ),
-                }
+                    (
+                        r"continue\s+connecting\s\(yes\/no\)\?",
+                        lambda session, logger: session.send_line("yes", logger),
+                    ),
+                ]
             )
-            CommandTemplateExecutor(
+            output = CommandTemplateExecutor(
                 self._cli_service,
                 f5_config_templates.DOWNLOAD_FILE_TO_DEVICE_SCP,
                 action_map=password_prompt_action_map,
@@ -108,25 +109,25 @@ class F5SysActions(object):
                 f5_config_templates.DOWNLOAD_FILE_TO_DEVICE,
                 timeout=180,
             ).execute_command(file_path=file_path, url=remote_url)
-            if re.search(r"curl:|[Ff]ail|[Ee]rror]", output, re.IGNORECASE):
-                self._logger.error(
-                    "Failed to download configuration: {}".format(output)
-                )
-                raise Exception("Failed to download configuration.")
+        return output
 
-    def upload_config(self, file_path: str, remote_url: RemoteURL):
+    def upload_config(self, file_path: str, remote_url: RemoteURL) -> None:
         """Upload file to FTP/TFTP Server."""
         # curl: (55) Network is unreachable
         if remote_url.scheme == "scp":
             password_prompt_action_map = OrderedDict(
-                {
+                [
                     (
                         r"[Pp]assword:?",
                         lambda session, logger: session.send_line(
                             remote_url.password, logger
                         ),
                     ),
-                }
+                    (
+                        r"continue\s+connecting\s\(yes\/no\)\?",
+                        lambda session, logger: session.send_line("yes", logger),
+                    ),
+                ]
             )
             CommandTemplateExecutor(
                 self._cli_service,
@@ -134,18 +135,9 @@ class F5SysActions(object):
                 action_map=password_prompt_action_map,
             ).execute_command(remote_url=remote_url, local_path=file_path)
         else:
-            for retry in range(1, 4):
-                try:
-                    CommandTemplateExecutor(
-                        self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
-                    ).execute_command(file_path=file_path, url=remote_url)
-                except CommandExecutionException as e:
-                    self._logger.warning(f"Catched exception {e} during config upload")
-                    if "network is unreachable" in e.args[0]:
-                        self._logger.warning(f"Retry {retry}/{3} failed")
-                        continue
-                    else:
-                        raise
+            CommandTemplateExecutor(
+                self._cli_service, f5_config_templates.UPLOAD_FILE_FROM_DEVICE
+            ).execute_command(file_path=file_path, url=remote_url)
         self._logger.debug("Upload config success")
 
     def reload_device(self, timeout, action_map=None, error_map=None):
@@ -178,3 +170,9 @@ class F5SysActions(object):
         CommandTemplateExecutor(
             self._cli_service, f5_config_templates.COPY_CONFIG, timeout=180
         ).execute_command(src_config=source_boot_volume, dst_config=target_boot_volume)
+
+    def remove_file(self, file_path):
+        output = CommandTemplateExecutor(
+            self._cli_service, f5_config_templates.REMOVE_FILE, timeout=180
+        ).execute_command(file_path=file_path)
+        return output
