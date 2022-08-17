@@ -20,7 +20,7 @@ class F5SysConfigActions(object):
         self._cli_service = cli_service
         self._logger = logger
 
-    def save_config(self, file_path, retries=5):
+    def save_config(self, file_path, retries=5, timeout=10):
         tally = 0
         while tally < retries:
             try:
@@ -34,6 +34,8 @@ class F5SysConfigActions(object):
                 tally += 1
                 if MCPD_ERROR not in str(e):
                     raise e
+                self._logger.warning(f"Fail with '{MCPD_ERROR}, retry {tally}'")
+                time.sleep(10)
         raise Exception(f"Retries for '{MCPD_ERROR}' exceeded {retries}")
 
     def load_config(self, file_path):
