@@ -5,10 +5,14 @@ from collections import OrderedDict
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
 )
-from cloudshell.cli.session.session_exceptions import SessionException
+from cloudshell.cli.session.session_exceptions import (
+    CommandExecutionException,
+    SessionException,
+)
 from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_templates import f5_config_templates
+from cloudshell.f5.command_templates.f5_config_templates import MCPD_ERROR
 
 
 class F5SysConfigActions(object):
@@ -16,11 +20,21 @@ class F5SysConfigActions(object):
         self._cli_service = cli_service
         self._logger = logger
 
-    def save_config(self, file_path):
-        output = CommandTemplateExecutor(
-            self._cli_service, f5_config_templates.SAVE_CONFIG_LOCALLY, timeout=180
-        ).execute_command(file_path=file_path)
-        return output
+    def save_config(self, file_path, retries=5):
+        tally = 0
+        while tally < retries:
+            try:
+                output = CommandTemplateExecutor(
+                    self._cli_service,
+                    f5_config_templates.SAVE_CONFIG_LOCALLY,
+                    timeout=180,
+                ).execute_command(file_path=file_path)
+                return output
+            except CommandExecutionException as e:
+                tally += 1
+                if MCPD_ERROR not in str(e):
+                    raise e
+        raise Exception(f"Retries for '{MCPD_ERROR}' exceeded {retries}")
 
     def load_config(self, file_path):
         output = CommandTemplateExecutor(

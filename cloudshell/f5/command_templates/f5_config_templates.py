@@ -26,7 +26,14 @@ ACTION_MAP = OrderedDict(
     ]
 )
 
-SAVE_CONFIG_LOCALLY = CommandTemplate("save sys ucs {file_path} no-private-key")
+MCPD_ERROR = "The connection to mcpd has been lost"
+CONFIG_ERROR_MAP = OrderedDict(
+    [(r"connection\s+to\s+mcpd\s+has\s+been\s+lost", MCPD_ERROR)]
+)
+
+SAVE_CONFIG_LOCALLY = CommandTemplate(
+    "save sys ucs {file_path} no-private-key", error_map=CONFIG_ERROR_MAP
+)
 LOAD_CONFIG_LOCALLY = CommandTemplate(
     "load sys ucs {file_path} no-license", action_map=ACTION_MAP
 )
