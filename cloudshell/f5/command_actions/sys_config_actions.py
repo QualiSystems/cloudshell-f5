@@ -5,14 +5,10 @@ from collections import OrderedDict
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
 )
-from cloudshell.cli.session.session_exceptions import (
-    CommandExecutionException,
-    SessionException,
-)
+from cloudshell.cli.session.session_exceptions import SessionException
 from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_templates import f5_config_templates
-from cloudshell.f5.command_templates.f5_config_templates import MCPD_ERROR
 
 
 class F5SysConfigActions(object):
@@ -23,20 +19,31 @@ class F5SysConfigActions(object):
     def save_config(self, file_path, retries=5, timeout=10):
         tally = 0
         while tally < retries:
-            try:
-                output = CommandTemplateExecutor(
-                    self._cli_service,
-                    f5_config_templates.SAVE_CONFIG_LOCALLY,
-                    timeout=180,
-                ).execute_command(file_path=file_path)
-                return output
-            except CommandExecutionException as e:
+            output = CommandTemplateExecutor(
+                self._cli_service,
+                f5_config_templates.MCPD_STATE,
+                timeout=180,
+            ).execute_command()
+
+            if re.search(r"[Rr]unning\s+[Pp]hase\s+running", output) is not None:
+                break
+            else:
+                time.sleep(timeout)
                 tally += 1
-                if MCPD_ERROR not in str(e):
-                    raise e
-                self._logger.warning(f"Fail with '{MCPD_ERROR}, retry {tally}'")
-                time.sleep(10)
-        raise Exception(f"Retries for '{MCPD_ERROR}' exceeded {retries}")
+                self._logger.warning(
+                    f"MCPD service is not in the state running, waiting {timeout} sec."
+                )
+        else:
+            raise Exception(
+                "MCPD service is not running, cannot proceed with save configuration."
+            )
+
+        output = CommandTemplateExecutor(
+            self._cli_service,
+            f5_config_templates.SAVE_CONFIG_LOCALLY,
+            timeout=180,
+        ).execute_command(file_path=file_path)
+        return output
 
     def load_config(self, file_path):
         output = CommandTemplateExecutor(

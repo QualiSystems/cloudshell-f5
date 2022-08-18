@@ -31,6 +31,8 @@ CONFIG_ERROR_MAP = OrderedDict(
     [(r"connection\s+to\s+mcpd\s+has\s+been\s+lost", MCPD_ERROR)]
 )
 
+MCPD_STATE = CommandTemplate("show sys mcp-state")
+
 SAVE_CONFIG_LOCALLY = CommandTemplate(
     "save sys ucs {file_path} no-private-key", error_map=CONFIG_ERROR_MAP
 )
