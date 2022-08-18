@@ -184,8 +184,8 @@ class F5SysActions(object):
         # todo AttributeError: 'NoneType' object has no attribute 'enter_actions'
         try:
             self._cli_service.reconnect(timeout)
-        except AttributeError as e:
-            self._logger.debug(f"Exception {e} while reconnecting, retrying")
+        except Exception:
+            self._logger.exception("Exception occurred while reconnecting, last retry.")
             time.sleep(5)
             self._cli_service.reconnect(30)
 
