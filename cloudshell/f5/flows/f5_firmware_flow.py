@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import time
+from typing import TYPE_CHECKING, Union
 
 from cloudshell.cli.session.session_exceptions import ExpectedSessionException
 from cloudshell.shell.flows.firmware.basic_flow import AbstractFirmwareFlow
@@ -8,6 +11,18 @@ from cloudshell.f5.command_actions.sys_config_actions import (
     F5SysConfigActions,
 )
 
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.shell.flows.utils.url import BasicLocalUrl, RemoteURL
+    from cloudshell.shell.standards.firewall.resource_config import (
+        FirewallResourceConfig,
+    )
+
+    from cloudshell.f5.cli.f5_cli_configurator import F5CliConfigurator
+
+    Url = Union[RemoteURL, BasicLocalUrl]
+
 
 class F5FirmwareFlow(AbstractFirmwareFlow):
 
@@ -16,20 +31,31 @@ class F5FirmwareFlow(AbstractFirmwareFlow):
     INSTALL_TIMEOUT = 120
     BOOT_TIMEOUT = 60
 
-    def __init__(self, cli_handler, logger):
-        super(F5FirmwareFlow, self).__init__(logger)
-        self._cli_handler = cli_handler
+    _local_storage = "/var/local/ucs"
 
-    def _load_firmware_flow(self, path, vrf_management_name, timeout):
-        filename = path.split("/")[-1]
+    def __init__(
+        self,
+        resource_config: FirewallResourceConfig,
+        logger: Logger,
+        cli_configurator: F5CliConfigurator,
+    ):
+        super(F5FirmwareFlow, self).__init__(logger, resource_config)
+        self._cli_configurator = cli_configurator
+
+    def _load_firmware_flow(
+        self, path: Url, vrf_management_name: str | None, timeout: int
+    ) -> None:
+        filename = path.filename
         local_path = "{}/{}".format(self._local_storage, filename)
 
-        with self._cli_handler.get_cli_service(
-            self._cli_handler.enable_mode
+        with self._cli_configurator.get_cli_service(
+            self._cli_configurator.enable_mode
         ) as session:
             sys_actions = F5SysActions(session, logger=self._logger)
             sys_actions.download_config(local_path, path)
-            with session.enter_mode(self._cli_handler.config_mode) as config_session:
+            with session.enter_mode(
+                self._cli_configurator.config_mode
+            ) as config_session:
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )
@@ -73,7 +99,9 @@ class F5FirmwareFlow(AbstractFirmwareFlow):
                 sys_config_actions.reload_device_to_certain_volume(
                     self.RELOAD_TIMEOUT, "HD{}".format(boot_volume)
                 )
-            with session.enter_mode(self._cli_handler.config_mode) as config_session:
+            with session.enter_mode(
+                self._cli_configurator.config_mode
+            ) as config_session:
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )

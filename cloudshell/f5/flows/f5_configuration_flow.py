@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from logging import Logger
 from typing import TYPE_CHECKING
 
 from cloudshell.shell.flows.configuration.basic_flow import (
@@ -9,15 +10,17 @@ from cloudshell.shell.flows.configuration.basic_flow import (
 )
 from cloudshell.shell.flows.utils.url import BasicLocalUrl
 
-from cloudshell.f5.command_actions.sys_config_actions import (
-    F5SysActions,
-    F5SysConfigActions,
-)
+from ..command_actions.sys_config_actions import F5SysActions, F5SysConfigActions
 
 if TYPE_CHECKING:
     from typing import Union
 
     from cloudshell.shell.flows.utils.url import RemoteURL
+    from cloudshell.shell.standards.firewall.resource_config import (
+        FirewallResourceConfig,
+    )
+
+    from ..cli.f5_cli_configurator import F5CliConfigurator
 
     Url = Union[RemoteURL, BasicLocalUrl]
 
@@ -33,12 +36,17 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
     }
     LOCAL_FILE_EXT = ".ucs"
 
-    def __init__(self, resource_config, logger, cli_handler):
+    def __init__(
+        self,
+        resource_config: FirewallResourceConfig,
+        logger: Logger,
+        cli_configurator: F5CliConfigurator,
+    ):
         super(F5ConfigurationFlow, self).__init__(logger, resource_config)
-        self._cli_handler = cli_handler
+        self._cli_configurator = cli_configurator
 
     @property
-    def file_system(self):
+    def file_system(self) -> str:
         return self._local_storage
 
     def _save_flow(
@@ -55,10 +63,12 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
             local_path = "/".join((self._local_storage, filename))
             remote = True
 
-        with self._cli_handler.get_cli_service(
-            self._cli_handler.enable_mode
+        with self._cli_configurator.get_cli_service(
+            self._cli_configurator.enable_mode
         ) as session:
-            with session.enter_mode(self._cli_handler.config_mode) as config_session:
+            with session.enter_mode(
+                self._cli_configurator.config_mode
+            ) as config_session:
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )
@@ -71,7 +81,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
     def _restore_flow(
         self, path: Url, configuration_type, restore_method, vrf_management_name
-    ):
+    ) -> None:
         restart_timeout = 120
 
         if isinstance(path, BasicLocalUrl):
@@ -84,13 +94,15 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 "{}/{}".format(self._local_storage, filename) + self.LOCAL_FILE_EXT
             )
 
-        with self._cli_handler.get_cli_service(
-            self._cli_handler.enable_mode
+        with self._cli_configurator.get_cli_service(
+            self._cli_configurator.enable_mode
         ) as session:
             sys_actions = F5SysActions(session, logger=self._logger)
             if remote:
                 sys_actions.download_config(local_path, path)
-            with session.enter_mode(self._cli_handler.config_mode) as config_session:
+            with session.enter_mode(
+                self._cli_configurator.config_mode
+            ) as config_session:
                 sys_config_actions = F5SysConfigActions(
                     config_session, logger=self._logger
                 )

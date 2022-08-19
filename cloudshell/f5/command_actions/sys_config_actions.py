@@ -163,7 +163,7 @@ class F5SysActions(object):
             ).execute_command(file_path=file_path, url=remote_url)
         self._logger.debug("Upload config success")
 
-    def reload_device(self, timeout, action_map=None, error_map=None):
+    def reload_device(self, timeout, action_map=None, error_map=None, retries=3):
         """Reload device.
 
         :param timeout: session reconnect timeout
@@ -181,13 +181,19 @@ class F5SysActions(object):
         except SessionException:
             self._logger.info("Device rebooted, starting reconnect")
 
-        # todo AttributeError: 'NoneType' object has no attribute 'enter_actions'
-        try:
-            self._cli_service.reconnect(timeout)
-        except Exception:
-            self._logger.exception("Exception occurred while reconnecting, last retry.")
-            time.sleep(5)
-            self._cli_service.reconnect(30)
+        tally = 0
+        while tally < retries:
+            try:
+                self._cli_service.reconnect(timeout)
+                break
+            except Exception:
+                self._logger.exception(
+                    f"Exception occurred while reconnecting on retry {tally}"
+                )
+                tally += 1
+                time.sleep(10)
+        else:
+            raise Exception(f"Reconnect to the device faile with {tally} retries.")
 
     def copy_config(self, source_boot_volume, target_boot_volume):
         CommandTemplateExecutor(
