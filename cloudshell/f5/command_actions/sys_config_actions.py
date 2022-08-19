@@ -191,9 +191,9 @@ class F5SysActions(object):
                     f"Exception occurred while reconnecting on retry {tally}"
                 )
                 tally += 1
-                time.sleep(10)
+                time.sleep(20)
         else:
-            raise Exception(f"Reconnect to the device faile with {tally} retries.")
+            raise Exception(f"Reconnect to the device fail with {tally} retries.")
 
     def copy_config(self, source_boot_volume, target_boot_volume):
         CommandTemplateExecutor(
