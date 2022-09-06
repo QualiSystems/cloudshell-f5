@@ -181,19 +181,7 @@ class F5SysActions(object):
         except SessionException:
             self._logger.info("Device rebooted, starting reconnect")
 
-        tally = 0
-        while tally < retries:
-            try:
-                self._cli_service.reconnect(timeout)
-                break
-            except Exception:
-                self._logger.exception(
-                    f"Exception occurred while reconnecting on retry {tally}"
-                )
-                tally += 1
-                time.sleep(20)
-        else:
-            raise Exception(f"Reconnect to the device fail with {tally} retries.")
+        self._cli_service.reconnect(timeout)
 
     def copy_config(self, source_boot_volume, target_boot_volume):
         CommandTemplateExecutor(

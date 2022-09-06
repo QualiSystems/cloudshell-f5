@@ -82,7 +82,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
     def _restore_flow(
         self, path: Url, configuration_type, restore_method, vrf_management_name
     ) -> None:
-        restart_timeout = 120
+        restart_timeout = 180
 
         if isinstance(path, BasicLocalUrl):
             remote = False
