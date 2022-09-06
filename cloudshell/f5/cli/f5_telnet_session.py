@@ -1,5 +1,7 @@
+import time
 from collections import OrderedDict
 
+from cloudshell.cli.session.session_exceptions import SessionException
 from cloudshell.cli.session.telnet_session import TelnetSession
 
 
@@ -13,13 +15,13 @@ class F5TelnetSession(TelnetSession):
             session.password, logger
         )
 
-        cli_action_key = r"[%>#]{1}\s*$"
+        cli_action_key = r"INOPERATIVE|[Ii]noperative"
 
         def action(session, sess_logger):
-            session.send_line("cli", sess_logger)
-            del action_map[cli_action_key]
+            time.sleep(15)
+            raise SessionException("System inoperative")
 
-        action_map[r"[%>#]{1}\s*$"] = action  # todo used to be hardcoded
+        action_map[cli_action_key] = action
         self.hardware_expect(
             None,
             expected_string=prompt,

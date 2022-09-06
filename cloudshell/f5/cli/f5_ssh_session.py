@@ -1,7 +1,8 @@
 import time
 from collections import OrderedDict
 
-from cloudshell.cli.session.ssh_session import SSHSession, SSHSessionException
+from cloudshell.cli.session.session_exceptions import SessionException
+from cloudshell.cli.session.ssh_session import SSHSession
 
 
 class F5SSHSession(SSHSession):
@@ -11,7 +12,7 @@ class F5SSHSession(SSHSession):
 
         def action(session, sess_logger):
             time.sleep(15)
-            raise SSHSessionException("System inoperative")
+            raise SessionException("System inoperative")
 
         action_map[cli_action_key] = action
         self.hardware_expect(
