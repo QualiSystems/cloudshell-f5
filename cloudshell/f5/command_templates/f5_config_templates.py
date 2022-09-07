@@ -66,7 +66,11 @@ INSTALL_FIRMWARE = CommandTemplate(
             (
                 r"[Ss]yntax\s+[Ee]rror",
                 "Failed to install firmware, Please check logs for details",
-            )
+            ),
+            (
+                r"[Dd]ata\s+[Ii]nput\s+[Ee]rror:",
+                "Failed to install firmware, see logs for more details.",
+            ),
         ]
     ),
 )

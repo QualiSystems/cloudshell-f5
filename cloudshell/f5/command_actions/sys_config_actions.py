@@ -1,6 +1,7 @@
 import re
 import time
 from collections import OrderedDict
+from typing import Callable, Dict
 
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
@@ -74,7 +75,11 @@ class F5SysConfigActions(object):
         return {float(x.groupdict().get("volume")): x.groupdict() for x in result_iter}
 
     def reload_device_to_certain_volume(
-        self, timeout, volume, action_map=None, error_map=None
+        self,
+        timeout: int,
+        volume: str,
+        action_map: Dict[str, Callable] = None,
+        error_map: Dict[str, str] = None,
     ):
         """Reload device.
 
@@ -163,7 +168,7 @@ class F5SysActions(object):
             ).execute_command(file_path=file_path, url=remote_url)
         self._logger.debug("Upload config success")
 
-    def reload_device(self, timeout, action_map=None, error_map=None, retries=3):
+    def reload_device(self, timeout, action_map=None, error_map=None):
         """Reload device.
 
         :param timeout: session reconnect timeout
@@ -179,7 +184,8 @@ class F5SysActions(object):
             ).execute_command()
 
         except SessionException:
-            self._logger.info("Device rebooted, starting reconnect")
+            pass
+        self._logger.info("Device rebooted, starting reconnect")
 
         self._cli_service.reconnect(timeout)
 
