@@ -1,0 +1,7 @@
+[report]
+omit =
+    */mibs/*
+    *exceptions*
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
