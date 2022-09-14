@@ -77,6 +77,10 @@ class F5FirmwareFlow(AbstractFirmwareFlow):
                     volume_dict = sys_config_actions.show_version_per_volume().get(
                         boot_volume
                     )
+                    if volume_dict is None or volume_dict.get("status") is None:
+                        raise Exception(
+                            "Failed to load firmware, see logs for details."
+                        )
                 except ExpectedSessionException:
                     pass
                 retry += 1
