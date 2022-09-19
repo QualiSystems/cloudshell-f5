@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     from typing import Union
 
     from cloudshell.shell.flows.utils.url import RemoteURL
-    from cloudshell.shell.standards.firewall.resource_config import (
-        FirewallResourceConfig,
+    from cloudshell.shell.standards.resource_config_generic_models import (
+        GenericBackupConfig,
     )
 
     from ..cli.f5_cli_configurator import F5CliConfigurator
@@ -38,7 +38,7 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
 
     def __init__(
         self,
-        resource_config: FirewallResourceConfig,
+        resource_config: GenericBackupConfig,
         logger: Logger,
         cli_configurator: F5CliConfigurator,
     ):
