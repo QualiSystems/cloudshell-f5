@@ -83,3 +83,12 @@ COPY_CONFIG = CommandTemplate("cpcfg --source={src_config} {dst_config}")
 
 SHOW_VERSION_PER_VOLUME = CommandTemplate("show sys software | grep HD")
 REMOVE_FILE = CommandTemplate("rm -rf {file_path}")
+
+ENABLE_TFTP_COMMAND = (
+    "modify security firewall management-ip-rules rules "
+    "add { QUALI_SHELL_TFTP { place-before first action "
+    "accept ip-protocol any source { addresses add { __TFTP_SERVER__ { } } } } }"
+)
+DISABLE_TFTP_COMMAND = (
+    "modify security firewall management-ip-rules rules delete { QUALI_SHELL_TFTP }"
+)
