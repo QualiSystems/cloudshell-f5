@@ -75,7 +75,16 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
                 sys_config_actions.save_config(local_path)
             if remote:
                 sys_actions = F5SysActions(session, logger=self._logger)
-                sys_actions.upload_config(local_path, file_dst_url)
+                if file_dst_url.scheme.lower() == "tftp":
+                    with session.enter_mode(self._cli_configurator.config_mode):
+                        sys_config_actions.enable_tftp(file_dst_url.host)
+                try:
+                    sys_actions.upload_config(local_path, file_dst_url)
+                finally:
+                    if file_dst_url.scheme.lower() == "tftp":
+                        with session.enter_mode(self._cli_configurator.config_mode):
+                            sys_config_actions.disable_tftp()
+
                 sys_actions.remove_file(local_path)
             return file_dst_url.filename
 
@@ -98,8 +107,17 @@ class F5ConfigurationFlow(AbstractConfigurationFlow):
             self._cli_configurator.enable_mode
         ) as session:
             sys_actions = F5SysActions(session, logger=self._logger)
+            sys_config_actions = F5SysConfigActions(session, logger=self._logger)
             if remote:
-                sys_actions.download_config(local_path, path)
+                if path.scheme.lower() == "tftp":
+                    with session.enter_mode(self._cli_configurator.config_mode):
+                        sys_config_actions.enable_tftp(path.host)
+                try:
+                    sys_actions.download_config(local_path, path)
+                finally:
+                    if path.scheme.lower() == "tftp":
+                        with session.enter_mode(self._cli_configurator.config_mode):
+                            sys_config_actions.disable_tftp()
             with session.enter_mode(
                 self._cli_configurator.config_mode
             ) as config_session:

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import re
 import time
 from collections import OrderedDict
-from typing import Callable, Dict
+from typing import TYPE_CHECKING, Callable, Dict
 
 from cloudshell.cli.command_template.command_template_executor import (
     CommandTemplateExecutor,
@@ -11,9 +13,14 @@ from cloudshell.shell.flows.utils.url import RemoteURL
 
 from cloudshell.f5.command_templates import f5_config_templates
 
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from cloudshell.cli.service.cli_service import CliService
+
 
 class F5SysConfigActions(object):
-    def __init__(self, cli_service, logger):
+    def __init__(self, cli_service: CliService, logger: Logger):
         self._cli_service = cli_service
         self._logger = logger
 
@@ -102,9 +109,22 @@ class F5SysConfigActions(object):
         time.sleep(300)
         self._cli_service.reconnect(timeout)
 
+    def enable_tftp(self, tftp_server: str) -> str:
+        out = self._cli_service.send_command(f5_config_templates.DISABLE_TFTP_COMMAND)
+        out += self._cli_service.send_command(
+            f5_config_templates.ENABLE_TFTP_COMMAND.replace(
+                "__TFTP_SERVER__", tftp_server
+            )
+        )
+        return out
+
+    def disable_tftp(self) -> str:
+        out = self._cli_service.send_command(f5_config_templates.DISABLE_TFTP_COMMAND)
+        return out
+
 
 class F5SysActions(object):
-    def __init__(self, cli_service, logger):
+    def __init__(self, cli_service: CliService, logger: Logger):
         self._cli_service = cli_service
         self._logger = logger
 
