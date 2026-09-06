@@ -1,17 +1,19 @@
-# #!/usr/bin/python
-# # -*- coding: utf-8 -*-
-#
+from __future__ import annotations
+
 from cloudshell.snmp.autoload.generic_snmp_autoload import GenericSNMPAutoload
 
-from cloudshell.f5.autoload.snmp_if_table import F5SnmpIfTable
+from cloudshell.f5.autoload.f5_ports_table import F5PortsTable
 
 
 class F5FirewallGenericSNMPAutoload(GenericSNMPAutoload):
-    @property
-    def if_table_service(self):
-        if not self._if_table:
-            self._if_table = F5SnmpIfTable(
-                snmp_handler=self.snmp_handler, logger=self.logger
-            )
+    _port_table_service: F5PortsTable | None
 
-        return self._if_table
+    @property
+    def port_table_service(self) -> F5PortsTable:
+        if not self._port_table_service:
+            self._port_table_service = F5PortsTable(
+                resource_model=self._resource_model,
+                ports_snmp_table=self.port_snmp_table,
+                logger=self.logger,
+            )
+        return self._port_table_service
