@@ -35,6 +35,8 @@ class BigIPAutoloadFlow(AbstractAutoloadFlow):
             snmp_service.add_mib_folder_path(
                 os.path.join(os.path.dirname(__file__), "..", "snmp", "mibs")
             )
-            f5_snmp_autoload = F5FirewallGenericSNMPAutoload(snmp_service, self._logger)
+            f5_snmp_autoload = F5FirewallGenericSNMPAutoload(
+                snmp_service, self._logger, resource_model
+            )
 
-            return f5_snmp_autoload.discover(supported_os, resource_model)
+            return f5_snmp_autoload.discover(supported_os)

@@ -1,5 +1,6 @@
-cloudshell-snmp~=4.0
-cloudshell-snmp-autoload~=1.0
+cloudshell-snmp>=6.0,<7.0
+cloudshell-snmp-autoload>=3.0,<4.0
 cloudshell-cli~=4.0
 cloudshell-shell-flows~=2.0
-attrs~=21.0
+attrs>=21,<23
+standard-telnetlib;python_version>="3.13"

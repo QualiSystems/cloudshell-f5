@@ -1,4 +1,4 @@
 pytest~=7.0
 pytest-cov~=3.0
 cloudshell-shell-core~=5.1
-cloudshell-shell-networking-standard==5.0.4
+cloudshell-shell-networking-standard>=6.0,<7.0
